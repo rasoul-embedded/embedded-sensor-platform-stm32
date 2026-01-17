@@ -1,0 +1,20 @@
+# CubeIDE build folders
+Debug/
+Release/
+
+# CubeIDE internal files
+.settings/
+.metadata/
+
+# STM32CubeMX generated backups
+*.bak
+
+# Compiled output
+*.o
+*.elf
+*.bin
+*.map
+
+# OS / editor junk
+.DS_Store
+*.swp
