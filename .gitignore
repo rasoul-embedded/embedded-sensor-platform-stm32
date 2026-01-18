@@ -3,10 +3,10 @@ Debug/
 Release/
 
 # CubeIDE internal files
-.settings/
-.metadata/
-.cproject/
-.project/
+.settings
+.metadata
+.cproject
+.project
 
 # STM32CubeMX generated backups
 *.bak
