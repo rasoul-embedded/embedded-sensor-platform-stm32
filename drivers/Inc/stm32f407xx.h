@@ -83,4 +83,98 @@
 #define EXTI_BASE_ADDR          (APB2PERIPH_BASE_ADDR + 0x3C00UL)  /* 0x40013C00 */
 
 
+
+/***************************************************************************************
+ * 							Peripheral Register Definition Structure
+ ***************************************************************************************/
+
+
+
+/* GPIO Register definition */
+
+typedef struct
+{
+	__vo uint32_t MODER;
+	__vo uint32_t OTYPER;
+	__vo uint32_t OSPEEDR;
+	__vo uint32_t PUPDR;
+	__vo uint32_t IDR;
+	__vo uint32_t ODR;
+	__vo uint32_t BSRR;
+	__vo uint32_t LCKR;
+	__vo uint32_t AFR[2];
+} GPIO_RegDef_t;
+
+
+/* RCC Register definition */
+typedef struct
+{
+	__vo uint32_t CR;
+	__vo uint32_t PLLCFGR;
+	__vo uint32_t CFGR;
+	__vo uint32_t CIR;
+	__vo uint32_t AHB1RSTR;
+	__vo uint32_t AHB2RSTR;
+	__vo uint32_t AHB3RSTR;
+	uint32_t	RESERVED0;
+	__vo uint32_t APB1RSTR;
+	__vo uint32_t APB2RSTR;
+	uint32_t	RESERVED1[2];
+	__vo uint32_t AHB1ENR;
+	__vo uint32_t AHB2ENR;
+	__vo uint32_t AHB3ENR;
+	uint32_t	RESERVED2;
+	__vo uint32_t APB1ENR;
+	__vo uint32_t APB2ENR;
+	uint32_t	RESERVED3[2];
+	__vo uint32_t AHB1LPENR;
+	__vo uint32_t AHB2LPENR;
+	__vo uint32_t AHB3LPENR;
+	uint32_t	RESERVED4;
+	__vo uint32_t APB1LPENR;
+	__vo uint32_t APB2LPENR;
+	uint32_t	RESERVED5[2];
+	__vo uint32_t BDCR;
+	__vo uint32_t CSR;
+	uint32_t	RESERVED6[2];
+	__vo uint32_t SSCGR;
+	__vo uint32_t PLLI2SCFGR;
+	__vo uint32_t PLLSAICFGR;
+	__vo uint32_t DCKCFGR;
+} RCC_RegDef_t;
+
+
+/***********************************************************
+ *              Peripheral definitions (typecasted)         *
+ ***********************************************************/
+#define GPIOA   ((GPIO_RegDef_t*)GPIOA_BASE_ADDR)
+#define GPIOB   ((GPIO_RegDef_t*)GPIOB_BASE_ADDR)
+#define GPIOC   ((GPIO_RegDef_t*)GPIOC_BASE_ADDR)
+#define GPIOD   ((GPIO_RegDef_t*)GPIOD_BASE_ADDR)
+#define GPIOE   ((GPIO_RegDef_t*)GPIOE_BASE_ADDR)
+#define GPIOF   ((GPIO_RegDef_t*)GPIOF_BASE_ADDR)
+#define GPIOG   ((GPIO_RegDef_t*)GPIOG_BASE_ADDR)
+#define GPIOH   ((GPIO_RegDef_t*)GPIOH_BASE_ADDR)
+#define GPIOI   ((GPIO_RegDef_t*)GPIOI_BASE_ADDR)
+
+#define RCC     ((RCC_RegDef_t*)RCC_BASE_ADDR)
+
+
+/***********************************************************
+ *                 Clock enable macros                     *
+ ***********************************************************/
+/* GPIO clocks (AHB1ENR) */
+#define GPIOA_PCLK_EN()     (RCC->AHB1ENR |= (1U << 0))
+#define GPIOB_PCLK_EN()     (RCC->AHB1ENR |= (1U << 1))
+#define GPIOC_PCLK_EN()     (RCC->AHB1ENR |= (1U << 2))
+#define GPIOD_PCLK_EN()     (RCC->AHB1ENR |= (1U << 3))
+#define GPIOE_PCLK_EN()     (RCC->AHB1ENR |= (1U << 4))
+#define GPIOF_PCLK_EN()     (RCC->AHB1ENR |= (1U << 5))
+#define GPIOG_PCLK_EN()     (RCC->AHB1ENR |= (1U << 6))
+#define GPIOH_PCLK_EN()     (RCC->AHB1ENR |= (1U << 7))
+#define GPIOI_PCLK_EN()     (RCC->AHB1ENR |= (1U << 8))
+
+
+
+
 #endif /* INC_STM32F407XX_H_ */
