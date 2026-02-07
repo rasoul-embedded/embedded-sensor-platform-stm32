@@ -16,6 +16,15 @@
 
 #define __vo volatile
 
+/* Optional weak macro (GCC/Clang). If you use another compiler, adapt as needed. */
+#if !defined(__weak)
+  #if defined(__GNUC__)
+    #define __weak __attribute__((weak))
+  #else
+    #define __weak
+  #endif
+#endif
+
 /*********************************** Processor Specific Details *******************************************/
 /*
  * ARM Cortex-M4 Processor NVIC ISERx register Addresses
@@ -35,11 +44,9 @@
 
 /*
  * ARM Cortex-M4 Processor Priority register base address (IPR)
- * Note: keeping uint32_t* (word access).
+ * Keep uint32_t* because your priority function uses /4 and %4.
  */
 #define NVIC_IPR_BASE_ADDR      ((__vo uint32_t*)0xE000E400)
-
-/* Compatibility alias (some code uses PR name) */
 #define NVIC_PR_BASE_ADDR       NVIC_IPR_BASE_ADDR
 
 #define NO_PR_BITS_IMPLEMENTED  4U
@@ -121,6 +128,17 @@ typedef struct
 
 typedef struct
 {
+    __vo uint32_t SR;
+    __vo uint32_t DR;
+    __vo uint32_t BRR;
+    __vo uint32_t CR1;
+    __vo uint32_t CR2;
+    __vo uint32_t CR3;
+    __vo uint32_t GTPR;
+} USART_RegDef_t;
+
+typedef struct
+{
     __vo uint32_t CR;
     __vo uint32_t PLLCFGR;
     __vo uint32_t CFGR;
@@ -186,6 +204,13 @@ typedef struct
 #define GPIOH   ((GPIO_RegDef_t*)GPIOH_BASE_ADDR)
 #define GPIOI   ((GPIO_RegDef_t*)GPIOI_BASE_ADDR)
 
+#define USART1  ((USART_RegDef_t*)USART1_BASE_ADDR )
+#define USART2  ((USART_RegDef_t*)USART2_BASE_ADDR )
+#define USART3  ((USART_RegDef_t*)USART3_BASE_ADDR )
+#define UART4   ((USART_RegDef_t*)UART4_BASE_ADDR )
+#define UART5   ((USART_RegDef_t*)UART5_BASE_ADDR )
+#define USART6  ((USART_RegDef_t*)USART6_BASE_ADDR )
+
 #define RCC     ((RCC_RegDef_t*)RCC_BASE_ADDR)
 #define EXTI    ((EXTI_RegDef_t*)EXTI_BASE_ADDR)
 #define SYSCFG  ((SYSCFG_RegDef_t*)SYSCFG_BASE_ADDR)
@@ -193,6 +218,7 @@ typedef struct
 /***********************************************************
  *                 Clock enable macros                      *
  ***********************************************************/
+// GPIO clock enable
 #define GPIOA_PCLK_EN()     (RCC->AHB1ENR |= (1U << 0))
 #define GPIOB_PCLK_EN()     (RCC->AHB1ENR |= (1U << 1))
 #define GPIOC_PCLK_EN()     (RCC->AHB1ENR |= (1U << 2))
@@ -203,12 +229,29 @@ typedef struct
 #define GPIOH_PCLK_EN()     (RCC->AHB1ENR |= (1U << 7))
 #define GPIOI_PCLK_EN()     (RCC->AHB1ENR |= (1U << 8))
 
-/* SYSCFG clock enable (needed for EXTI port mapping) */
+// USART clock enable
+#define USART1_PCLK_EN()    (RCC->APB2ENR |= (1U << 4))
+#define USART2_PCLK_EN()    (RCC->APB1ENR |= (1U << 17))
+#define USART3_PCLK_EN()    (RCC->APB1ENR |= (1U << 18))
+#define UART4_PCLK_EN()     (RCC->APB1ENR |= (1U << 19))
+#define UART5_PCLK_EN()     (RCC->APB1ENR |= (1U << 20))
+#define USART6_PCLK_EN()    (RCC->APB2ENR |= (1U << 5))
+
+// USART clock disable
+#define USART1_PCLK_DI()    (RCC->APB2ENR &= ~(1U << 4))
+#define USART2_PCLK_DI()    (RCC->APB1ENR &= ~(1U << 17))
+#define USART3_PCLK_DI()    (RCC->APB1ENR &= ~(1U << 18))
+#define UART4_PCLK_DI()     (RCC->APB1ENR &= ~(1U << 19))
+#define UART5_PCLK_DI()     (RCC->APB1ENR &= ~(1U << 20))
+#define USART6_PCLK_DI()    (RCC->APB2ENR &= ~(1U << 5))
+
+// SYSCFG clock enable
 #define SYSCFG_PCLK_EN()    (RCC->APB2ENR |= (1U << 14))
 
 /***********************************************************
  *                 Register reset macros                   *
  ***********************************************************/
+// GPIO Reset Macros
 #define GPIOA_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 0)); (RCC->AHB1RSTR &= ~(1U << 0)); }while(0)
 #define GPIOB_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 1)); (RCC->AHB1RSTR &= ~(1U << 1)); }while(0)
 #define GPIOC_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 2)); (RCC->AHB1RSTR &= ~(1U << 2)); }while(0)
@@ -218,6 +261,14 @@ typedef struct
 #define GPIOG_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 6)); (RCC->AHB1RSTR &= ~(1U << 6)); }while(0)
 #define GPIOH_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 7)); (RCC->AHB1RSTR &= ~(1U << 7)); }while(0)
 #define GPIOI_REG_RESET()  do{ (RCC->AHB1RSTR |=  (1U << 8)); (RCC->AHB1RSTR &= ~(1U << 8)); }while(0)
+
+// USART Reset Macros
+#define USART1_REG_RESET()  do{ (RCC->APB2RSTR |=  (1U << 4)); (RCC->APB2RSTR &= ~(1U << 4)); }while(0)
+#define USART2_REG_RESET()  do{ (RCC->APB1RSTR |=  (1U << 17)); (RCC->APB1RSTR &= ~(1U << 17)); }while(0)
+#define USART3_REG_RESET()  do{ (RCC->APB1RSTR |=  (1U << 18)); (RCC->APB1RSTR &= ~(1U << 18)); }while(0)
+#define UART4_REG_RESET()   do{ (RCC->APB1RSTR |=  (1U << 19)); (RCC->APB1RSTR &= ~(1U << 19)); }while(0)
+#define UART5_REG_RESET()   do{ (RCC->APB1RSTR |=  (1U << 20)); (RCC->APB1RSTR &= ~(1U << 20)); }while(0)
+#define USART6_REG_RESET()  do{ (RCC->APB2RSTR |=  (1U << 5)); (RCC->APB2RSTR &= ~(1U << 5)); }while(0)
 
 #define GPIO_BASEADDR_TO_CODE(x)            ((x==GPIOA) ? 0U :\
                                             (x==GPIOB) ? 1U :\
@@ -236,6 +287,8 @@ typedef struct
 #define DISABLE         0U
 #define SET             ENABLE
 #define RESET           DISABLE
+#define FLAG_SET        SET
+#define FLAG_RESET      RESET
 
 #define GPIO_PIN_SET    SET
 #define GPIO_PIN_RESET  RESET
@@ -243,6 +296,7 @@ typedef struct
 /***********************************************************
  *                 IRQ numbers (NVIC)                      *
  ***********************************************************/
+/* EXTI */
 #define IRQ_NO_EXTI0            6U
 #define IRQ_NO_EXTI1            7U
 #define IRQ_NO_EXTI2            8U
@@ -250,5 +304,14 @@ typedef struct
 #define IRQ_NO_EXTI4            10U
 #define IRQ_NO_EXTI9_5          23U
 #define IRQ_NO_EXTI15_10        40U
+
+/* USART / UART (STM32F407) */
+#define IRQ_NO_USART1           37U
+#define IRQ_NO_USART2           38U
+#define IRQ_NO_USART3           39U
+#define IRQ_NO_UART4            52U
+#define IRQ_NO_UART5            53U
+#define IRQ_NO_USART6           71U
+
 
 #endif /* INC_STM32F407XX_H_ */
