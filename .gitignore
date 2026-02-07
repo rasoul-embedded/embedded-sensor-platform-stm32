@@ -25,6 +25,3 @@ Release/
 # Source file
 usart_test.c
 
-
-# 
-.gitignore
