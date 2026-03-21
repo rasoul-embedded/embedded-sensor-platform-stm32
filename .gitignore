@@ -24,4 +24,5 @@ Release/
 
 # Source file
 usart_test.c
-
+i2c_test.c
+Src/main.c
