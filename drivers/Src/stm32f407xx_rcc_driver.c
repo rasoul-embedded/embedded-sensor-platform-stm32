@@ -10,9 +10,9 @@
 #define HSI_VALUE 16000000U
 #define HSE_VALUE 8000000U
 
-/* Prescaler lookup tables: index = (field value - base) */
-static const uint16_t AHB_Prescaler[8]  = {2,4,8,16,64,128,256,512}; /* HPRE: 1000..1111 */
-static const uint8_t  APB_Prescaler[4]  = {2,4,8,16};               /* PPRE: 100..111   */
+static const uint16_t AHB_Prescaler[8]  = {2,4,8,16,64,128,256,512};
+static const uint8_t  APB_Prescaler[4]  = {2,4,8,16};
+
 
 /**
  * @brief  Get PLL output clock (PLLCLK) in Hz.
