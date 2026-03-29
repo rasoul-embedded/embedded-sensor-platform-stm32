@@ -394,7 +394,8 @@ void I2C_PeriControl(I2C_Handle_t *pI2CHandle, uint8_t EnOrDi)
 I2C_Status_t I2C_MasterSendData(I2C_Handle_t *pI2CHandle,
                                 uint8_t *pBuffer,
                                 uint32_t Len,
-                                uint8_t SlaveAddr)
+                                uint8_t SlaveAddr,
+                                uint8_t Sr)
 {
     uint32_t timeout;
 
@@ -403,12 +404,17 @@ I2C_Status_t I2C_MasterSendData(I2C_Handle_t *pI2CHandle,
         return I2C_OK;
     }
 
-    if (I2C_WaitWhileBusy(pI2CHandle) < 0)
+    /* Wait for bus only if we are not already master
+       This allows repeated START continuation */
+    if ((pI2CHandle->pI2Cx->SR2 & I2C_FLAG_SR2_MSL) == 0U)
     {
-        return I2C_ERROR_BUSY;
+        if (I2C_WaitWhileBusy(pI2CHandle) < 0)
+        {
+            return I2C_ERROR_BUSY;
+        }
     }
 
-    /* Generate START */
+    /* Generate START or repeated START */
     pI2CHandle->pI2Cx->CR1 |= I2C_CR1_START;
 
     /* Wait for SB */
@@ -515,8 +521,11 @@ I2C_Status_t I2C_MasterSendData(I2C_Handle_t *pI2CHandle,
         }
     }
 
-    /* Generate STOP */
-    pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+    /* Generate STOP only if repeated START is not requested */
+    if (Sr == I2C_DISABLE_SR)
+    {
+        pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+    }
 
     return I2C_OK;
 }
@@ -527,7 +536,8 @@ I2C_Status_t I2C_MasterSendData(I2C_Handle_t *pI2CHandle,
 I2C_Status_t I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,
                                    uint8_t *pBuffer,
                                    uint32_t Len,
-                                   uint8_t SlaveAddr)
+                                   uint8_t SlaveAddr,
+                                   uint8_t Sr)
 {
     uint32_t timeout;
 
@@ -536,12 +546,17 @@ I2C_Status_t I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,
         return I2C_OK;
     }
 
-    if (I2C_WaitWhileBusy(pI2CHandle) < 0)
+    /* Wait for bus only if we are not already master
+       This allows repeated START continuation */
+    if ((pI2CHandle->pI2Cx->SR2 & I2C_FLAG_SR2_MSL) == 0U)
     {
-        return I2C_ERROR_BUSY;
+        if (I2C_WaitWhileBusy(pI2CHandle) < 0)
+        {
+            return I2C_ERROR_BUSY;
+        }
     }
 
-    /* Generate START */
+    /* Generate START or repeated START */
     pI2CHandle->pI2Cx->CR1 |= I2C_CR1_START;
 
     /* Wait for SB */
@@ -598,7 +613,10 @@ I2C_Status_t I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,
         (void)pI2CHandle->pI2Cx->SR1;
         (void)pI2CHandle->pI2Cx->SR2;
 
-        pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        if (Sr == I2C_DISABLE_SR)
+        {
+            pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        }
 
         timeout = I2C_TIMEOUT;
         while (!I2C_GetFlagStatus_SR1(pI2CHandle, I2C_FLAG_SR1_RXNE))
@@ -634,7 +652,10 @@ I2C_Status_t I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,
             }
         }
 
-        pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        if (Sr == I2C_DISABLE_SR)
+        {
+            pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        }
 
         *pBuffer = (uint8_t)pI2CHandle->pI2Cx->DR;
         pBuffer++;
@@ -696,7 +717,10 @@ I2C_Status_t I2C_MasterReceiveData(I2C_Handle_t *pI2CHandle,
             }
         }
 
-        pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        if (Sr == I2C_DISABLE_SR)
+        {
+            pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        }
 
         *pBuffer = (uint8_t)pI2CHandle->pI2Cx->DR;
         pBuffer++;
