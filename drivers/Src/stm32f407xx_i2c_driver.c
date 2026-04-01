@@ -503,28 +503,28 @@ I2C_Status_t I2C_MasterSendData(I2C_Handle_t *pI2CHandle,
         }
     }
 
-    /* Wait for BTF */
-    timeout = I2C_TIMEOUT;
-    while (!I2C_GetFlagStatus_SR1(pI2CHandle, I2C_FLAG_SR1_BTF))
-    {
-        if (I2C_GetFlagStatus_SR1(pI2CHandle, I2C_FLAG_SR1_AF))
-        {
-            pI2CHandle->pI2Cx->SR1 &= ~I2C_FLAG_SR1_AF;
-            pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
-            return I2C_ERROR_AF;
-        }
 
-        if (timeout-- == 0U)
-        {
-            pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
-            return I2C_ERROR_TIMEOUT;
-        }
-    }
 
-    /* Generate STOP only if repeated START is not requested */
+    /* Wait for BTF only when this transfer ends with STOP.
+       For repeated-start sequences, TXE is enough. */
     if (Sr == I2C_DISABLE_SR)
     {
-        pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+        timeout = I2C_TIMEOUT;
+        while (!I2C_GetFlagStatus_SR1(pI2CHandle, I2C_FLAG_SR1_BTF))
+        {
+            if (I2C_GetFlagStatus_SR1(pI2CHandle, I2C_FLAG_SR1_AF))
+            {
+                pI2CHandle->pI2Cx->SR1 &= ~I2C_FLAG_SR1_AF;
+                pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+                return I2C_ERROR_AF;
+            }
+
+            if (timeout-- == 0U)
+            {
+                pI2CHandle->pI2Cx->CR1 |= I2C_CR1_STOP;
+                return I2C_ERROR_TIMEOUT;
+            }
+        }
     }
 
     return I2C_OK;
