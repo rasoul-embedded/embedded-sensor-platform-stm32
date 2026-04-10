@@ -22,17 +22,17 @@ void USART_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnorDi)
 
     if (EnorDi == ENABLE)
     {
-        if      (reg == 0U) *NVIC_ISER0 = (1U << bit);
-        else if (reg == 1U) *NVIC_ISER1 = (1U << bit);
-        else if (reg == 2U) *NVIC_ISER2 = (1U << bit);
-        else if (reg == 3U) *NVIC_ISER3 = (1U << bit);
+    	if      (reg == 0U) *NVIC_ISER0 |= (1U << bit);
+    	else if (reg == 1U) *NVIC_ISER1 |= (1U << bit);
+    	else if (reg == 2U) *NVIC_ISER2 |= (1U << bit);
+    	else if (reg == 3U) *NVIC_ISER3 |= (1U << bit);
     }
     else
     {
-        if      (reg == 0U) *NVIC_ICER0 = (1U << bit);
-        else if (reg == 1U) *NVIC_ICER1 = (1U << bit);
-        else if (reg == 2U) *NVIC_ICER2 = (1U << bit);
-        else if (reg == 3U) *NVIC_ICER3 = (1U << bit);
+        if      (reg == 0U) *NVIC_ICER0 |= (1U << bit);
+        else if (reg == 1U) *NVIC_ICER1 |= (1U << bit);
+        else if (reg == 2U) *NVIC_ICER2 |= (1U << bit);
+        else if (reg == 3U) *NVIC_ICER3 |= (1U << bit);
     }
 }
 
@@ -219,7 +219,6 @@ void USART_SendData(USART_Handle_t *pHandle, uint8_t *pTxBuffer, uint32_t Len)
     }
 
     while (USART_GetFlagStatus(pHandle->pUSART, USART_FLAG_TC) == FLAG_RESET);
-    USART_ClearFlag(pHandle->pUSART, USART_FLAG_TC);
 }
 
 void USART_ReceiveData(USART_Handle_t *pHandle, uint8_t *pRxBuffer, uint32_t Len)
