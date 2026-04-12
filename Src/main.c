@@ -18,38 +18,9 @@
 
 #include <stdint.h>
 
-#define RCC_BASE_ADDR				0x40023800UL
-#define RCC_CFGR_OFFSET				0x08UL
-#define RCC_CFGR_REG_ADDR			(RCC_BASE_ADDR + RCC_CFGR_OFFSET)
-#define RCC_AHB1ENR_OFFSET			0x30
-#define RCC_AHB1ENR_ADDR			(RCC_BASE_ADDR + RCC_AHB1ENR_OFFSET)
-#define RCC_CR_OFFSET				0x00
-#define RCC_CR_ADDR					(RCC_BASE_ADDR + RCC_CR_OFFSET)
-#define GPIOA_BASE_ADDR				0x40020000UL
-#define GPIOA_MODER_OFFSET			0x00UL
-#define GPIOA_MODER_ADDR			GPIOA_BASE_ADDR + GPIOA_MODER_OFFSET
-#define GPIOA_AFRH_OFFSET			0x24UL
-#define GPIOA_AFRH_ADDR				GPIOA_BASE_ADDR + GPIOA_AFRH_OFFSET
 
 int main(void)
 {
-	uint32_t *pRccCrReg = (uint32_t * )RCC_CR_ADDR;
-	*pRccCrReg |= (1 << 16);
-	while(!(*pRccCrReg & (1 << 17)));
-	uint32_t *pRccCfgrReg = (uint32_t *)RCC_CFGR_REG_ADDR;
-	*pRccCfgrReg |= (1 << 0);
-	*pRccCfgrReg |= (1 << 22);
-	*pRccCfgrReg |=  (0x4 << 24);
 
-
-	uint32_t *pRccAhb1Enr = (uint32_t *)RCC_AHB1ENR_ADDR;
-	*pRccAhb1Enr |= (1 << 0);
-	uint32_t *pGPIOAModeReg = (uint32_t *)GPIOA_MODER_ADDR;
-	*pGPIOAModeReg &= ~(0x3 << 16);
-	*pGPIOAModeReg |=  (0x2 << 16);
-	uint32_t *pGPIOAAltFunHighReg = (uint32_t *)GPIOA_AFRH_ADDR;
-	*pGPIOAAltFunHighReg &= ~(0xf << 0);
-
-    /* Loop forever */
 	for(;;);
 }
