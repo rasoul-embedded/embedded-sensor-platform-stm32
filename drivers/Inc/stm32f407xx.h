@@ -98,6 +98,13 @@
 #define I2C2_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x5800UL)
 #define I2C3_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x5C00UL)
 
+#define TIM2_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0000UL)
+#define TIM3_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0400UL)
+#define TIM4_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0800UL)
+#define TIM5_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0C00UL)
+
+
+
 /****************************************
  *             APB2 peripherals         *
  ****************************************/
@@ -217,6 +224,32 @@ typedef struct
     __vo uint32_t CMPCR;
 } SYSCFG_RegDef_t;
 
+
+typedef struct
+{
+    __vo uint32_t CR1;
+    __vo uint32_t CR2;
+    __vo uint32_t SMCR;
+    __vo uint32_t DIER;
+    __vo uint32_t SR;
+    __vo uint32_t EGR;
+    __vo uint32_t CCMR1;
+    __vo uint32_t CCMR2;
+    __vo uint32_t CCER;
+    __vo uint32_t CNT;
+    __vo uint32_t PSC;
+    __vo uint32_t ARR;
+    __vo uint32_t RESERVED1;
+    __vo uint32_t CCR1;
+    __vo uint32_t CCR2;
+    __vo uint32_t CCR3;
+    __vo uint32_t CCR4;
+    __vo uint32_t RESERVED2;
+    __vo uint32_t DCR;
+    __vo uint32_t DMAR;
+    __vo uint32_t OR;
+} TIM_RegDef_t;
+
 /***********************************************************
  *          Peripheral definitions (typecasted)            *
  ***********************************************************/
@@ -248,6 +281,13 @@ typedef struct
 #define RCC                     ((RCC_RegDef_t*)RCC_BASE_ADDR)
 #define EXTI                    ((EXTI_RegDef_t*)EXTI_BASE_ADDR)
 #define SYSCFG                  ((SYSCFG_RegDef_t*)SYSCFG_BASE_ADDR)
+
+#define TIM2                    ((TIM_RegDef_t*)TIM2_BASE_ADDR)
+#define TIM3                    ((TIM_RegDef_t*)TIM3_BASE_ADDR)
+#define TIM4                    ((TIM_RegDef_t*)TIM4_BASE_ADDR)
+#define TIM5                    ((TIM_RegDef_t*)TIM5_BASE_ADDR)
+
+
 
 /***********************************************************
  *                 Clock enable macros                     *
@@ -284,6 +324,14 @@ typedef struct
 /* SYSCFG */
 #define SYSCFG_PCLK_EN()        (RCC->APB2ENR |=  (1U << 14))
 
+/* TIM */
+#define TIM2_PCLK_EN()          (RCC->APB1ENR |=  (1U << 0))
+#define TIM3_PCLK_EN()          (RCC->APB1ENR |=  (1U << 1))
+#define TIM4_PCLK_EN()          (RCC->APB1ENR |=  (1U << 2))
+#define TIM5_PCLK_EN()          (RCC->APB1ENR |=  (1U << 3))
+
+
+
 /***********************************************************
  *                 Clock disable macros                    *
  ***********************************************************/
@@ -319,6 +367,14 @@ typedef struct
 /* SYSCFG */
 #define SYSCFG_PCLK_DI()        (RCC->APB2ENR &= ~(1U << 14))
 
+/* TIM */
+#define TIM2_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 0))
+#define TIM3_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 1))
+#define TIM4_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 2))
+#define TIM5_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 3))
+
+
+
 /***********************************************************
  *                 Register reset macros                   *
  ***********************************************************/
@@ -353,6 +409,15 @@ typedef struct
 
 /* SYSCFG */
 #define SYSCFG_REG_RESET()      do { RCC->APB2RSTR |=  (1U << 14); RCC->APB2RSTR &= ~(1U << 14); } while (0)
+
+/* TIM */
+#define TIM2_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 0); RCC->APB1RSTR &= ~(1U << 0); } while (0)
+#define TIM3_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 1); RCC->APB1RSTR &= ~(1U << 1); } while (0)
+#define TIM4_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 2); RCC->APB1RSTR &= ~(1U << 2); } while (0)
+#define TIM5_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 3); RCC->APB1RSTR &= ~(1U << 3); } while (0)
+
+
+
 
 /***********************************************************
  *                 Generic helper macros                   *
@@ -408,5 +473,11 @@ typedef struct
 #define IRQ_NO_UART4            52U
 #define IRQ_NO_UART5            53U
 #define IRQ_NO_USART6           71U
+
+
+/* TIM */
+#define IRQ_NO_TIM2             28U
+
+
 
 #endif /* INC_STM32F407XX_H_ */
