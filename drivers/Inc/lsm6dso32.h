@@ -39,11 +39,21 @@
 
 /* Basic configuration values */
 #define LSM6DSO32_CTRL3_C_IF_INC          0x04
-#define LSM6DSO32_CTRL1_XL_104HZ_4G       0x4A
+#define LSM6DSO32_CTRL1_XL_104HZ_4G       0x40
 #define LSM6DSO32_CTRL2_G_104HZ_250DPS    0x40
 
 #define LSM6DSO32_ACCEL_SENS_4G   		   0.000122f
 #define LSM6DSO32_GYRO_SENS_250DPS         0.00875f
+
+
+#define AX_BIAS   (21.43f)
+#define AY_BIAS   (-44.33f)
+#define AZ_BIAS   (13.95f)
+
+#define GX_BIAS   (-66.29f)
+#define GY_BIAS   (-362.43f)
+#define GZ_BIAS   (-99.27f)
+
 typedef struct
 {
     I2C_Handle_t *hi2c;
@@ -70,6 +80,34 @@ typedef struct
     float y;
     float z;
 } LSM6DSO32_AxesDps_t;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} LSM6DSO32_A_t;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} LSM6DSO32_G_t;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} LSM6DSO32_AF_t;
+
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} LSM6DSO32_GF_t;
 
 I2C_Status_t LSM6DSO32_ReadReg(LSM6DSO32_t *dev, uint8_t reg, uint8_t *data);
 I2C_Status_t LSM6DSO32_WriteReg(LSM6DSO32_t *dev, uint8_t reg, uint8_t data);

@@ -141,7 +141,6 @@ uint8_t LSM6DSO32_ReadAccelG(LSM6DSO32_t *dev, volatile LSM6DSO32_AxesG_t *accel
     }
 
 
-    // Replace ACCEL_SENS_4G with the correct sensitivity value for your selected +/-4g setting
 
     accel_g->x = raw.x * LSM6DSO32_ACCEL_SENS_4G;
     accel_g->y = raw.y * LSM6DSO32_ACCEL_SENS_4G;
