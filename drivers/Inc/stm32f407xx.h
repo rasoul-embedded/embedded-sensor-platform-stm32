@@ -83,6 +83,30 @@
 
 #define RCC_BASE_ADDR           (AHB1PERIPH_BASE_ADDR + 0x3800UL)
 
+#define DMA1_BASE_ADDR			(AHB1PERIPH_BASE_ADDR + 0x6000UL)
+#define DMA2_BASE_ADDR			(AHB1PERIPH_BASE_ADDR + 0x6400UL)
+
+
+/* DMA1 stream base addresses */
+#define DMA1_STREAM0_BASE_ADDR   (DMA1_BASE_ADDR + 0x010UL)
+#define DMA1_STREAM1_BASE_ADDR   (DMA1_BASE_ADDR + 0x028UL)
+#define DMA1_STREAM2_BASE_ADDR   (DMA1_BASE_ADDR + 0x040UL)
+#define DMA1_STREAM3_BASE_ADDR   (DMA1_BASE_ADDR + 0x058UL)
+#define DMA1_STREAM4_BASE_ADDR   (DMA1_BASE_ADDR + 0x070UL)
+#define DMA1_STREAM5_BASE_ADDR   (DMA1_BASE_ADDR + 0x088UL)
+#define DMA1_STREAM6_BASE_ADDR   (DMA1_BASE_ADDR + 0x0A0UL)
+#define DMA1_STREAM7_BASE_ADDR   (DMA1_BASE_ADDR + 0x0B8UL)
+
+/* DMA2 stream base addresses */
+#define DMA2_STREAM0_BASE_ADDR   (DMA2_BASE_ADDR + 0x010UL)
+#define DMA2_STREAM1_BASE_ADDR   (DMA2_BASE_ADDR + 0x028UL)
+#define DMA2_STREAM2_BASE_ADDR   (DMA2_BASE_ADDR + 0x040UL)
+#define DMA2_STREAM3_BASE_ADDR   (DMA2_BASE_ADDR + 0x058UL)
+#define DMA2_STREAM4_BASE_ADDR   (DMA2_BASE_ADDR + 0x070UL)
+#define DMA2_STREAM5_BASE_ADDR   (DMA2_BASE_ADDR + 0x088UL)
+#define DMA2_STREAM6_BASE_ADDR   (DMA2_BASE_ADDR + 0x0A0UL)
+#define DMA2_STREAM7_BASE_ADDR   (DMA2_BASE_ADDR + 0x0B8UL)
+
 /****************************************
  *             APB1 peripherals         *
  ****************************************/
@@ -250,6 +274,27 @@ typedef struct
     __vo uint32_t OR;
 } TIM_RegDef_t;
 
+
+
+typedef struct
+{
+    __vo uint32_t LISR;
+    __vo uint32_t HISR;
+    __vo uint32_t LIFCR;
+    __vo uint32_t HIFCR;
+} DMA_RegDef_t;
+
+typedef struct
+{
+    __vo uint32_t CR;
+    __vo uint32_t NDTR;
+    __vo uint32_t PAR;
+    __vo uint32_t M0AR;
+    __vo uint32_t M1AR;
+    __vo uint32_t FCR;
+} DMA_Stream_RegDef_t;
+
+
 /***********************************************************
  *          Peripheral definitions (typecasted)            *
  ***********************************************************/
@@ -287,7 +332,26 @@ typedef struct
 #define TIM4                    ((TIM_RegDef_t*)TIM4_BASE_ADDR)
 #define TIM5                    ((TIM_RegDef_t*)TIM5_BASE_ADDR)
 
+#define DMA1 					((DMA_RegDef_t*)DMA1_BASE_ADDR)
+#define DMA2 					((DMA_RegDef_t*)DMA2_BASE_ADDR)
 
+#define DMA1_Stream0 ((DMA_Stream_RegDef_t*)DMA1_STREAM0_BASE_ADDR)
+#define DMA1_Stream1 ((DMA_Stream_RegDef_t*)DMA1_STREAM1_BASE_ADDR)
+#define DMA1_Stream2 ((DMA_Stream_RegDef_t*)DMA1_STREAM2_BASE_ADDR)
+#define DMA1_Stream3 ((DMA_Stream_RegDef_t*)DMA1_STREAM3_BASE_ADDR)
+#define DMA1_Stream4 ((DMA_Stream_RegDef_t*)DMA1_STREAM4_BASE_ADDR)
+#define DMA1_Stream5 ((DMA_Stream_RegDef_t*)DMA1_STREAM5_BASE_ADDR)
+#define DMA1_Stream6 ((DMA_Stream_RegDef_t*)DMA1_STREAM6_BASE_ADDR)
+#define DMA1_Stream7 ((DMA_Stream_RegDef_t*)DMA1_STREAM7_BASE_ADDR)
+
+#define DMA2_Stream0 ((DMA_Stream_RegDef_t*)DMA2_STREAM0_BASE_ADDR)
+#define DMA2_Stream1 ((DMA_Stream_RegDef_t*)DMA2_STREAM1_BASE_ADDR)
+#define DMA2_Stream2 ((DMA_Stream_RegDef_t*)DMA2_STREAM2_BASE_ADDR)
+#define DMA2_Stream3 ((DMA_Stream_RegDef_t*)DMA2_STREAM3_BASE_ADDR)
+#define DMA2_Stream4 ((DMA_Stream_RegDef_t*)DMA2_STREAM4_BASE_ADDR)
+#define DMA2_Stream5 ((DMA_Stream_RegDef_t*)DMA2_STREAM5_BASE_ADDR)
+#define DMA2_Stream6 ((DMA_Stream_RegDef_t*)DMA2_STREAM6_BASE_ADDR)
+#define DMA2_Stream7 ((DMA_Stream_RegDef_t*)DMA2_STREAM7_BASE_ADDR)
 
 /***********************************************************
  *                 Clock enable macros                     *
@@ -329,6 +393,10 @@ typedef struct
 #define TIM3_PCLK_EN()          (RCC->APB1ENR |=  (1U << 1))
 #define TIM4_PCLK_EN()          (RCC->APB1ENR |=  (1U << 2))
 #define TIM5_PCLK_EN()          (RCC->APB1ENR |=  (1U << 3))
+
+/* DMA */
+#define DMA1_PCLK_EN()          (RCC->AHB1ENR |=  (1U << 21))
+#define DMA2_PCLK_EN()          (RCC->AHB1ENR |=  (1U << 22))
 
 
 
@@ -373,7 +441,9 @@ typedef struct
 #define TIM4_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 2))
 #define TIM5_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 3))
 
-
+/* DMA */
+#define DMA1_PCLK_DI()          (RCC->AHB1ENR &= ~(1U << 21))
+#define DMA2_PCLK_DI()          (RCC->AHB1ENR &= ~(1U << 22))
 
 /***********************************************************
  *                 Register reset macros                   *
@@ -416,7 +486,9 @@ typedef struct
 #define TIM4_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 2); RCC->APB1RSTR &= ~(1U << 2); } while (0)
 #define TIM5_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 3); RCC->APB1RSTR &= ~(1U << 3); } while (0)
 
-
+/* DMA */
+#define DMA1_REG_RESET()        do { RCC->AHB1RSTR |=  (1U << 21); RCC->AHB1RSTR &= ~(1U << 21); } while (0)
+#define DMA2_REG_RESET()        do { RCC->AHB1RSTR |=  (1U << 22); RCC->AHB1RSTR &= ~(1U << 22); } while (0)
 
 
 /***********************************************************
@@ -478,6 +550,25 @@ typedef struct
 /* TIM */
 #define IRQ_NO_TIM2             28U
 
+/* DMA1 */
+#define IRQ_NO_DMA1_STREAM0		11U
+#define IRQ_NO_DMA1_STREAM1		12U
+#define IRQ_NO_DMA1_STREAM2		13U
+#define IRQ_NO_DMA1_STREAM3		14U
+#define IRQ_NO_DMA1_STREAM4		15U
+#define IRQ_NO_DMA1_STREAM5		16U
+#define IRQ_NO_DMA1_STREAM6		17U
+#define IRQ_NO_DMA1_STREAM7		47U
+
+/* DMA2 */
+#define IRQ_NO_DMA2_STREAM0     56U
+#define IRQ_NO_DMA2_STREAM1     57U
+#define IRQ_NO_DMA2_STREAM2     58U
+#define IRQ_NO_DMA2_STREAM3     59U
+#define IRQ_NO_DMA2_STREAM4     60U
+#define IRQ_NO_DMA2_STREAM5     68U
+#define IRQ_NO_DMA2_STREAM6     69U
+#define IRQ_NO_DMA2_STREAM7     70U
 
 
 #endif /* INC_STM32F407XX_H_ */
