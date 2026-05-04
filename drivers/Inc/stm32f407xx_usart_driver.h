@@ -189,4 +189,10 @@ void USART_SetBaudRate(USART_RegDef_t *pUSARTx, uint32_t BaudRate);
 #define USART_CR3_CTSIE_Pos     10U
 #define USART_CR3_CTSIE         (1U << USART_CR3_CTSIE_Pos)
 
+#define USART_CR3_DMAT_Pos      7U
+#define USART_CR3_DMAT      	(1U << USART_CR3_DMAT_Pos)
+
+#define USART_CR3_DMAR_Pos      6U
+#define USART_CR3_DMAR      	(1U << USART_CR3_DMAR_Pos)
+
 #endif /* INC_STM32F407XX_USART_DRIVER_H_ */

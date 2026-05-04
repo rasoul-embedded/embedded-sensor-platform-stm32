@@ -2,6 +2,7 @@
 #include "stm32f407xx_i2c_driver.h"
 #include "stm32f407xx_usart_driver.h"
 #include "stm32f407xx_tim_driver.h"
+#include "stm32f407xx_dma_driver.h"
 #include "lsm6dso32.h"
 #include <stdio.h>
 #include <string.h>
@@ -13,6 +14,7 @@
 static I2C_Handle_t i2c1Handle;
 static USART_Handle_t usart2Handle;
 static TIM_Handle_t tim2Handle;
+static DMA_Handle_t usart2TxDmaHandle;
 
 LSM6DSO32_AxesG_t accel_g;
 LSM6DSO32_AxesDps_t gyro_dps;
@@ -21,6 +23,7 @@ volatile uint8_t sample_flag = 0;
 static uint32_t sample_count= 0;
 static uint8_t filter_initialized = 0;
 static float roll = 0, pitch = 0;
+static uint8_t USART2_DMA_Send(uint8_t *pTxBuffer, uint32_t Len);
 
 
 LSM6DSO32_A_t a;
@@ -32,9 +35,123 @@ LSM6DSO32_GF_t g_f;
 #define ALPHA 		0.1f
 #define DT 0.01f
 #define RAD_TO_DEG 57.2958f
-
+#define USART2_DMA_TX_IDLE  0U
+#define USART2_DMA_TX_BUSY  1U
 char msg[128];
+static volatile uint8_t usart2_dma_tx_busy = USART2_DMA_TX_IDLE;
 
+
+
+static void USART2_TX_DMA_Init(void)
+{
+    /*
+     * USART2_TX mapping:
+     * DMA controller = DMA1
+     * Stream         = 6
+     * Channel        = 4
+     */
+
+    usart2TxDmaHandle.pDMAx = DMA1;
+    usart2TxDmaHandle.pStream = DMA1_Stream6;
+    usart2TxDmaHandle.StreamNumber = 6U;
+
+    /*
+     * Configure DMA stream
+     */
+    usart2TxDmaHandle.DMA_Config.Channel = DMA_CHANNEL_4;
+    usart2TxDmaHandle.DMA_Config.Direction = DMA_DIR_M2P;
+
+    usart2TxDmaHandle.DMA_Config.PeriphInc = DMA_PINC_DISABLE;
+    usart2TxDmaHandle.DMA_Config.MemInc = DMA_MINC_ENABLE;
+
+    usart2TxDmaHandle.DMA_Config.PeriphDataSize = DMA_PSIZE_BYTE;
+    usart2TxDmaHandle.DMA_Config.MemDataSize = DMA_MSIZE_BYTE;
+
+    usart2TxDmaHandle.DMA_Config.Mode = DMA_MODE_NORMAL;
+    usart2TxDmaHandle.DMA_Config.Priority = DMA_PL_LOW;
+
+    /*
+     * Initialize DMA stream
+     */
+    DMA_Init(&usart2TxDmaHandle);
+
+    /*
+     * Clear old flags before first use
+     */
+    DMA_ClearFlags(&usart2TxDmaHandle);
+
+    /*
+     * Configure DMA IRQ in NVIC
+     */
+    DMA_IRQPriorityConfig(IRQ_NO_DMA1_STREAM6, 15);
+    DMA_IRQInterruptConfig(IRQ_NO_DMA1_STREAM6, ENABLE);
+}
+
+static uint8_t USART2_DMA_Send(uint8_t *pTxBuffer, uint32_t Len)
+{
+    /*
+     * 1. Reject invalid transfer
+     */
+    if (pTxBuffer == 0 || Len == 0)
+    {
+        return DMA_TX_ERROR;
+    }
+
+    /*
+     * 2. If previous DMA TX is still running, do not overwrite/send
+     */
+    if (usart2_dma_tx_busy == USART2_DMA_TX_BUSY)
+    {
+        return DMA_TX_BUSY;
+    }
+
+    /*
+     * 3. Mark USART2 DMA TX busy
+     */
+    usart2_dma_tx_busy = USART2_DMA_TX_BUSY;
+
+    /*
+     * 4. Make sure stream is disabled before configuring addresses/length
+     */
+    DMA_DisableStream(&usart2TxDmaHandle);
+
+    /*
+     * 5. Clear old DMA flags for Stream 6
+     */
+    DMA_ClearFlags(&usart2TxDmaHandle);
+
+    /*
+     * 6. Configure peripheral and memory addresses
+     *
+     * Peripheral address = address of USART2 data register
+     * Memory address     = address of transmit buffer
+     */
+    DMA_ConfigAddresses(&usart2TxDmaHandle,
+                        (uint32_t)&usart2Handle.pUSART->DR,
+                        (uint32_t)pTxBuffer);
+
+    /*
+     * 7. Configure number of data items
+     *
+     * For UART TX:
+     * MSIZE = byte
+     * PSIZE = byte
+     * therefore Len = number of bytes
+     */
+    DMA_SetDataLength(&usart2TxDmaHandle, Len);
+
+    /*
+     * 8. Enable USART DMA transmit request
+     */
+    USART2->CR3 |= USART_CR3_DMAT;
+
+    /*
+     * 9. Enable DMA stream
+     */
+    DMA_EnableStream(&usart2TxDmaHandle);
+
+    return DMA_TX_OK;
+}
 static void I2C1_GPIOInit(void)
 {
     GPIO_Handle_t gpio;
@@ -186,16 +303,25 @@ static void imu_compute_angles(void)
 
 static void imu_process(void)
 {
-	int roll_i  = (int)(roll * 100);
-	int pitch_i = (int)(pitch * 100);
+    /*
+     * If DMA is still sending the previous message,
+     * do not overwrite msg[].
+     */
+    if (usart2_dma_tx_busy == DMA_TX_BUSY)
+    {
+        return;
+    }
 
-	sprintf(msg,
-	       "%lu,%d,%d\r\n",
-	       sample_count++,
-	       roll_i,
-	       pitch_i);
+    int roll_i  = (int)(roll * 100);
+    int pitch_i = (int)(pitch * 100);
 
-    USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
+    sprintf(msg,
+            "%lu,%d,%d\r\n",
+            sample_count++,
+            roll_i,
+            pitch_i);
+
+    USART2_DMA_Send((uint8_t *)msg, strlen(msg));
 }
 
 
@@ -212,7 +338,7 @@ int main(void)
     TIM2_Init();
 
     GPIODInit();
-
+    USART2_TX_DMA_Init();
     imu.address = LSM6DSO32_I2C_ADDR;
     imu.hi2c = &i2c1Handle;
 
@@ -239,12 +365,55 @@ int main(void)
     		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_12, RESET);
 
 
-    		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_13, SET);
     		imu_apply_calibration();
     		imu_apply_filter();
     		imu_compute_angles();
+    		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_13, SET);
     		imu_process();
     		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_13, RESET);
     	}
+    }
+}
+
+
+void DMA1_Stream6_IRQHandler(void)
+{
+    /*
+     * Check transfer complete flag for Stream 6
+     */
+    if (DMA_GetFlagStatus(&usart2TxDmaHandle, DMA_FLAG_TCIF2_6) == FLAG_SET)
+    {
+        /*
+         * Clear all flags for Stream 6
+         */
+        DMA_ClearFlags(&usart2TxDmaHandle);
+        /*
+         * Disable stream after normal-mode transfer
+         */
+        DMA_DisableStream(&usart2TxDmaHandle);
+
+        /*
+         * Optional:
+         * Disable USART DMA TX request
+         */
+        USART2->CR3 &= ~USART_CR3_DMAT;
+
+        /*
+         * Mark DMA TX free
+         */
+        usart2_dma_tx_busy = USART2_DMA_TX_IDLE;
+        return;
+    }
+
+    /*
+     * Optional error handling:
+     * Check transfer error flag
+     */
+    if (DMA_GetFlagStatus(&usart2TxDmaHandle, DMA_FLAG_TEIF2_6) == FLAG_SET)
+    {
+        DMA_ClearFlags(&usart2TxDmaHandle);
+        DMA_DisableStream(&usart2TxDmaHandle);
+        USART2->CR3 &= ~USART_CR3_DMAT;
+        usart2_dma_tx_busy = USART2_DMA_TX_IDLE;
     }
 }

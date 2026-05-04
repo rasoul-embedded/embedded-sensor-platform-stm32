@@ -35,6 +35,21 @@ typedef struct
     DMA_Config_t         DMA_Config;
 } DMA_Handle_t;
 
+
+
+/*
+ * DMA Stream selection values
+ */
+#define DMA_STREAM_0              0U
+#define DMA_STREAM_1              1U
+#define DMA_STREAM_2              2U
+#define DMA_STREAM_3              3U
+#define DMA_STREAM_4              4U
+#define DMA_STREAM_5              5U
+#define DMA_STREAM_6              6U
+#define DMA_STREAM_7              7U
+
+
 /*
  * DMA channel selection values
  */
@@ -46,6 +61,8 @@ typedef struct
 #define DMA_CHANNEL_5              5U
 #define DMA_CHANNEL_6              6U
 #define DMA_CHANNEL_7              7U
+
+
 
 
 /*
@@ -225,5 +242,9 @@ void DMA_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
                                    DMA_FLAG_TEIF3_7  | \
                                    DMA_FLAG_HTIF3_7  | \
                                    DMA_FLAG_TCIF3_7)
+
+#define DMA_TX_OK       0U
+#define DMA_TX_BUSY     1U
+#define DMA_TX_ERROR    2U
 
 #endif /* INC_STM32F407XX_DMA_DRIVER_H_ */
