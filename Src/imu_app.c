@@ -4,6 +4,7 @@
 #include "stm32f407xx_tim_driver.h"
 #include "stm32f407xx_dma_driver.h"
 #include "lsm6dso32.h"
+#include "imu_estimator.h"
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
@@ -22,7 +23,6 @@ LSM6DSO32_AxesDps_t gyro_dps;
 volatile uint8_t sample_flag = 0;
 static uint32_t sample_count= 0;
 static uint8_t filter_initialized = 0;
-static float roll = 0, pitch = 0;
 static uint8_t USART2_DMA_Send(uint8_t *pTxBuffer, uint32_t Len);
 
 
@@ -33,8 +33,7 @@ LSM6DSO32_AF_t a_f;
 LSM6DSO32_GF_t g_f;
 
 #define ALPHA 		0.1f
-#define DT 0.01f
-#define RAD_TO_DEG 57.2958f
+#define DT			0.01f
 #define USART2_DMA_TX_IDLE  0U
 #define USART2_DMA_TX_BUSY  1U
 char msg[128];
@@ -289,17 +288,6 @@ static void imu_apply_filter(void)
 
 }
 
-static void imu_compute_angles(void)
-{
-    float roll_acc  = atan2f(a_f.y, a_f.z) * RAD_TO_DEG;
-    float pitch_acc = atan2f(-a_f.x, sqrtf(a_f.y*a_f.y + a_f.z*a_f.z)) * RAD_TO_DEG;
-
-    float gx_dps = g_f.x / 1000.0f;
-    float gy_dps = g_f.y / 1000.0f;
-
-    roll  = 0.98f * (roll + gx_dps * DT) + 0.02f * roll_acc;
-    pitch = 0.98f * (pitch + gy_dps * DT) + 0.02f * pitch_acc;
-}
 
 static void imu_process(void)
 {
@@ -312,8 +300,8 @@ static void imu_process(void)
         return;
     }
 
-    int roll_i  = (int)(roll * 100);
-    int pitch_i = (int)(pitch * 100);
+    int roll_i  = (int)(IMU_Estimator_GetRoll() * 100);
+    int pitch_i = (int)(IMU_Estimator_GetPitch() * 100);
 
     sprintf(msg,
             "%lu,%d,%d\r\n",
@@ -334,7 +322,6 @@ int main(void)
 
     USART2_GPIOInit();
     USART2_Init();
-
     TIM2_Init();
 
     GPIODInit();
@@ -349,6 +336,8 @@ int main(void)
 
         while (1);
     }
+
+    IMU_Estimator_Init();
 
     TIM_PeripheralControl(TIM2, ENABLE);
     sprintf(msg, "LSM6DSO32 init OK\r\n");
@@ -367,7 +356,12 @@ int main(void)
 
     		imu_apply_calibration();
     		imu_apply_filter();
-    		imu_compute_angles();
+    		IMU_Estimator_Update(a_f.x,
+    		                     a_f.y,
+    		                     a_f.z,
+    		                     g_f.x,
+    		                     g_f.y,
+    		                     DT);
     		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_13, SET);
     		imu_process();
     		GPIO_WriteToOutputPin(GPIOD, GPIO_PIN_NO_13, RESET);
