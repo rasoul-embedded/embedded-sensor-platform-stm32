@@ -300,14 +300,23 @@ static void imu_process(void)
         return;
     }
 
-    int roll_i  = (int)(IMU_Estimator_GetRoll() * 100);
-    int pitch_i = (int)(IMU_Estimator_GetPitch() * 100);
+    int roll_i  = 		(int)(IMU_Estimator_GetRoll() * 100);
+    int pitch_i = 		(int)(IMU_Estimator_GetPitch() * 100);
+    int roll_acc_i =  	(int)(IMU_Estimator_GetRollAcc() * 100);
+    int pitch_acc_i = 	(int)(IMU_Estimator_GetPitchAcc() * 100);
+    int roll_gyro_i = 	(int)(IMU_Estimator_GetRollGyro() * 100);
+    int pitch_gyro_i = 	(int)(IMU_Estimator_GetPitchGyro() * 100);
+
 
     sprintf(msg,
-            "%lu,%d,%d\r\n",
+            "%lu,%d,%d,%d,%d,%d,%d\r\n",
             sample_count++,
             roll_i,
-            pitch_i);
+            pitch_i,
+			roll_acc_i,
+			pitch_acc_i,
+			roll_gyro_i,
+			pitch_gyro_i);
 
     USART2_DMA_Send((uint8_t *)msg, strlen(msg));
 }

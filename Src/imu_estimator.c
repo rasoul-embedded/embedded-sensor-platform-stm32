@@ -7,6 +7,9 @@
 static float roll;
 static float pitch;
 
+static float roll_gyro;
+static float pitch_gyro;
+
 static float roll_acc;
 static float pitch_acc;
 
@@ -18,6 +21,9 @@ void IMU_Estimator_Init(void)
 
     roll_acc = 0.0f;
     pitch_acc = 0.0f;
+
+    roll_gyro = 0.0f;
+    pitch_gyro = 0.0f;
 }
 
 void IMU_Estimator_Update(float ax_mg,
@@ -40,11 +46,17 @@ void IMU_Estimator_Update(float ax_mg,
 	float gx_dps = gx_mdps / 1000.0f;
 	float gy_dps = gy_mdps / 1000.0f;
 
+	/*
+	 * 3. Calculate roll and pitch gyro
+	 */
+	roll_gyro  = roll + gx_dps * dt;
+	pitch_gyro = pitch + gy_dps * dt;
+
     /*
-     * 3. Complementary filter
+     * 4. Complementary filter
      */
-	roll  = (1.0f - COMP_ACCEL_WEIGHT) * (roll + gx_dps * dt) + COMP_ACCEL_WEIGHT * roll_acc;
-	pitch = (1.0f - COMP_ACCEL_WEIGHT) * (pitch + gy_dps * dt) + COMP_ACCEL_WEIGHT * pitch_acc;
+	roll  = (1.0f - COMP_ACCEL_WEIGHT) * roll_gyro + COMP_ACCEL_WEIGHT * roll_acc;
+	pitch = (1.0f - COMP_ACCEL_WEIGHT) * pitch_gyro + COMP_ACCEL_WEIGHT * pitch_acc;
 }
 
 float IMU_Estimator_GetRoll(void)
@@ -65,4 +77,14 @@ float IMU_Estimator_GetRollAcc(void)
 float IMU_Estimator_GetPitchAcc(void)
 {
     return pitch_acc;
+}
+
+float IMU_Estimator_GetRollGyro(void)
+{
+    return roll_gyro;
+}
+
+float IMU_Estimator_GetPitchGyro(void)
+{
+    return pitch_gyro;
 }

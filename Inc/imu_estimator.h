@@ -15,5 +15,7 @@ float IMU_Estimator_GetPitch(void);
 
 float IMU_Estimator_GetRollAcc(void);
 float IMU_Estimator_GetPitchAcc(void);
+float IMU_Estimator_GetRollGyro(void);
+float IMU_Estimator_GetPitchGyro(void);
 
 #endif
