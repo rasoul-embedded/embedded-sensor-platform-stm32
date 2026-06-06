@@ -557,15 +557,10 @@ static void imu_apply_filter(void)
  * IMU logging
  * ============================================================
  */
-
 static void imu_process(void)
 {
     /*
-     * If DMA is still transmitting the previous CSV line,
-     * do not overwrite msg[].
-     *
-     * This first version drops the current log line if DMA is busy.
-     * Later improvement: double buffering or ring buffer.
+     * Protect msg[] while DMA is transmitting.
      */
     if (usart2_dma_tx_busy == USART2_DMA_TX_BUSY)
     {
@@ -573,41 +568,28 @@ static void imu_process(void)
     }
 
     /*
-     * Convert estimator outputs to scaled integers.
+     * Scale angles by 100 so they can be logged as integers.
      *
      * Example:
-     *   27.78 deg -> 2778
+     *   12.34 deg -> 1234
      */
-    int roll_i       = (int)(IMU_Estimator_GetRoll() * 100);
-    int pitch_i      = (int)(IMU_Estimator_GetPitch() * 100);
-
-    int roll_acc_i   = (int)(IMU_Estimator_GetRollAcc() * 100);
-    int pitch_acc_i  = (int)(IMU_Estimator_GetPitchAcc() * 100);
-
-    int roll_gyro_i  = (int)(IMU_Estimator_GetRollGyro() * 100);
-    int pitch_gyro_i = (int)(IMU_Estimator_GetPitchGyro() * 100);
+    int roll_comp_i   = (int)(IMU_Estimator_GetRoll() * 100);
+    int roll_kalman_i = (int)(IMU_Estimator_GetRollKalman() * 100);
+    int roll_acc_i    = (int)(IMU_Estimator_GetRollAcc() * 100);
+    int roll_gyro_i   = (int)(IMU_Estimator_GetRollGyro() * 100);
 
     /*
-     * Diagnostic CSV format:
-     *
-     * counter,
-     * roll, pitch,
-     * roll_acc, pitch_acc,
-     * roll_gyro, pitch_gyro
+     * CSV format:
+     * counter,roll_comp,roll_kalman,roll_acc,roll_gyro
      */
     sprintf(msg,
-            "%lu,%d,%d,%d,%d,%d,%d\r\n",
+            "%lu,%d,%d,%d,%d\r\n",
             sample_count++,
-            roll_i,
-            pitch_i,
+            roll_comp_i,
+            roll_kalman_i,
             roll_acc_i,
-            pitch_acc_i,
-            roll_gyro_i,
-            pitch_gyro_i);
+            roll_gyro_i);
 
-    /*
-     * Start non-blocking UART transmission using DMA.
-     */
     USART2_DMA_Send((uint8_t *)msg, strlen(msg));
 }
 
@@ -678,7 +660,7 @@ int main(void)
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     sprintf(msg,
-            "counter,roll,pitch,roll_acc,pitch_acc,roll_gyro,pitch_gyro\r\n");
+            "counter,roll_comp,roll_kalman,roll_acc,roll_gyro\r\n");
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     /*
