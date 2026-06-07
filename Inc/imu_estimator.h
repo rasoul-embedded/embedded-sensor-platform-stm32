@@ -19,5 +19,6 @@ float IMU_Estimator_GetRollGyro(void);
 float IMU_Estimator_GetPitchGyro(void);
 
 float IMU_Estimator_GetRollKalman(void);
+float IMU_Estimator_GetPitchKalman(void);
 
 #endif

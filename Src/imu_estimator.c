@@ -20,6 +20,9 @@ static float pitch_acc;
 static Kalman1D_t roll_kalman_filter;
 static float roll_kalman;
 
+static Kalman1D_t pitch_kalman_filter;
+static float pitch_kalman;
+
 void IMU_Estimator_Init(void)
 {
 
@@ -39,6 +42,14 @@ void IMU_Estimator_Init(void)
                   KALMAN_R_MEASURE);
 
     roll_kalman = 0.0f;
+
+    Kalman1D_Init(&pitch_kalman_filter,
+                  0.0f,
+                  KALMAN_Q_ANGLE,
+                  KALMAN_Q_BIAS,
+                  KALMAN_R_MEASURE);
+
+    pitch_kalman = 0.0f;
 }
 
 void IMU_Estimator_Update(float ax_mg,
@@ -80,6 +91,11 @@ void IMU_Estimator_Update(float ax_mg,
 	                              roll_acc,
 	                              gx_dps,
 	                              dt);
+
+	pitch_kalman = Kalman1D_Update(&pitch_kalman_filter,
+	                               pitch_acc,
+	                               gy_dps,
+	                               dt);
 }
 
 float IMU_Estimator_GetRoll(void)
@@ -115,4 +131,10 @@ float IMU_Estimator_GetPitchGyro(void)
 float IMU_Estimator_GetRollKalman(void)
 {
     return roll_kalman;
+}
+
+float IMU_Estimator_GetPitchKalman(void)
+{
+    return pitch_kalman;
+
 }

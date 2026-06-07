@@ -575,8 +575,8 @@ static void imu_process(void)
      */
     int roll_comp_i   = (int)(IMU_Estimator_GetRoll() * 100);
     int roll_kalman_i = (int)(IMU_Estimator_GetRollKalman() * 100);
-    int roll_acc_i    = (int)(IMU_Estimator_GetRollAcc() * 100);
-    int roll_gyro_i   = (int)(IMU_Estimator_GetRollGyro() * 100);
+    int pitch_comp_i    = (int)(IMU_Estimator_GetPitch() * 100);
+    int pitch_kalman_i   = (int)(IMU_Estimator_GetPitchKalman() * 100);
 
     /*
      * CSV format:
@@ -587,8 +587,8 @@ static void imu_process(void)
             sample_count++,
             roll_comp_i,
             roll_kalman_i,
-            roll_acc_i,
-            roll_gyro_i);
+            pitch_comp_i,
+            pitch_kalman_i);
 
     USART2_DMA_Send((uint8_t *)msg, strlen(msg));
 }
@@ -660,7 +660,7 @@ int main(void)
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     sprintf(msg,
-            "counter,roll_comp,roll_kalman,roll_acc,roll_gyro\r\n");
+            "counter,roll_comp,roll_kalman,pitch_comp,pitch_kalman\r\n");
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     /*
