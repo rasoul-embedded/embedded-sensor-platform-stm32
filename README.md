@@ -1,33 +1,45 @@
+# STM32F407 Real-Time IMU Orientation Estimation
+
 ## 📌 Overview
 
-This project implements a real-time IMU acquisition and processing system on the **STM32F407 Discovery** using the **LSM6DSO32** inertial sensor.
+This project implements a real-time IMU acquisition, processing, orientation-estimation, and visualization system on the **STM32F407 Discovery** using the **LSM6DSO32** inertial sensor.
 
-At the end of Month 2, the system supports:
+The system started as a deterministic IMU data acquisition project and has been extended into a complete real-time roll/pitch estimation demo. It supports timer-driven 100 Hz sampling, calibrated accelerometer and gyroscope acquisition, low-pass filtering, complementary filtering, 1D Kalman filtering, UART DMA streaming, offline validation, and live 3D orientation visualization in Python.
+
+The current system supports:
 
 * Timer-driven deterministic sampling at 100 Hz
 * Accelerometer and gyroscope acquisition via I2C
 * Bias calibration for accelerometer and gyroscope
 * Real-time low-pass filtering
 * Roll and pitch estimation using a complementary filter
+* Reusable 1D Kalman filter for roll and pitch
 * UART data logging in CSV format
 * UART transmission using DMA
 * Timing analysis using GPIO and a logic analyzer
 * Linux-compatible serial data logging
 * Offline CSV validation and analysis
+* Python-based live roll/pitch plotting
+* Python-based live 3D orientation visualization
 
-The system is now stable, measurable, and ready for further orientation estimation and control-oriented applications.
+The system is now stable, measurable, and suitable as a base for future control-oriented embedded applications.
 
 ---
 
-## 🎯 Objectives of Month 2
+## 🎯 Project Objectives
 
-* Replace uncontrolled sampling with deterministic timer-based sampling
+* Implement deterministic timer-based IMU sampling
+* Acquire accelerometer and gyroscope data from the LSM6DSO32
 * Correct raw sensor outputs using bias calibration
-* Reduce noise using real-time filtering
-* Implement basic roll and pitch estimation
+* Reduce signal noise using real-time low-pass filtering
+* Estimate roll and pitch using a complementary filter
+* Implement reusable 1D Kalman filtering for roll and pitch
 * Reduce UART logging overhead using DMA
-* Validate timing behavior using a logic analyzer
-* Validate logged data quality using offline analysis
+* Validate timing behavior using GPIO and a logic analyzer
+* Validate logged data quality using offline CSV analysis
+* Stream real-time orientation data to a host PC
+* Visualize roll and pitch live using Python
+* Display a live 3D representation of the board orientation
 
 ---
 
@@ -46,14 +58,20 @@ imu_apply_calibration()
         ↓
 imu_apply_filter()
         ↓
-imu_compute_angles()
+IMU_Estimator_Update()
+        ↓
+Complementary filter update
+        ↓
+Roll/Pitch Kalman filter update
         ↓
 imu_process()
         ↓
-UART DMA Logging
-````
+UART DMA streaming
+        ↓
+Python live plot / 3D visualization
+```
 
-Heavy operations such as I2C communication, filtering, angle computation, string formatting, and UART logging are executed in the main loop, not inside the timer ISR.
+Heavy operations such as I2C communication, calibration, filtering, angle estimation, Kalman filtering, string formatting, and UART transmission setup are executed in the main loop, not inside the timer ISR.
 
 ---
 
@@ -63,6 +81,7 @@ Heavy operations such as I2C communication, filtering, angle computation, string
 * **LSM6DSO32 IMU**
 * USB-to-Serial adapter
 * Logic analyzer for timing validation
+* Linux host PC for serial logging and Python visualization
 
 ### Pin Configuration
 
@@ -102,7 +121,7 @@ void TIM2_IRQHandler(void)
 }
 ```
 
-The interrupt only sets a flag. The actual IMU reading and processing are handled in the main loop.
+The interrupt only sets a flag. The actual IMU reading, filtering, estimation, and UART logging are handled in the main loop.
 
 ---
 
@@ -223,12 +242,16 @@ g_f.z = ALPHA * g.z + (1.0f - ALPHA) * g_f.z;
 
 ## 🧭 Roll and Pitch Estimation
 
-A complementary filter is used to estimate roll and pitch.
+Roll and pitch are estimated in real time using both a complementary filter and a reusable 1D Kalman filter.
+
+The complementary filter combines short-term gyroscope integration with long-term accelerometer correction. The Kalman filter estimates the angle while also estimating gyroscope bias.
+
+---
 
 ### Accelerometer-Based Angles
 
 ```c
-float roll_acc  = atan2f(a_f.y, a_f.z) * RAD_TO_DEG;
+float roll_acc = atan2f(a_f.y, a_f.z) * RAD_TO_DEG;
 
 float pitch_acc = atan2f(
     -a_f.x,
@@ -236,19 +259,69 @@ float pitch_acc = atan2f(
 ) * RAD_TO_DEG;
 ```
 
-### Gyroscope Integration + Complementary Filter
+---
+
+### Complementary Filter
 
 ```c
-roll  = 0.98f * (roll  + gx_dps * DT) + 0.02f * roll_acc;
-pitch = 0.98f * (pitch + gy_dps * DT) + 0.02f * pitch_acc;
+roll_gyro  = roll  + gx_dps * DT;
+pitch_gyro = pitch + gy_dps * DT;
+
+roll  = 0.98f * roll_gyro  + 0.02f * roll_acc;
+pitch = 0.98f * pitch_gyro + 0.02f * pitch_acc;
+```
+
+The gyroscope provides fast short-term response, while the accelerometer corrects long-term drift.
+
+---
+
+### 1D Kalman Filter
+
+A reusable 1D Kalman filter module is implemented in:
+
+```text
+Core/Inc/kalman_1d.h
+Core/Src/kalman_1d.c
+```
+
+The filter estimates:
+
+```text
+state[0] = angle
+state[1] = gyro_bias
+```
+
+Prediction step:
+
+```text
+rate = gyro_rate - gyro_bias
+angle = angle + dt * rate
+```
+
+Correction step:
+
+```text
+measurement = accelerometer_angle
+error = measurement - predicted_angle
+```
+
+The same Kalman filter structure is used independently for roll and pitch.
+
+Initial tuning parameters:
+
+```c
+#define KALMAN_Q_ANGLE      0.001f
+#define KALMAN_Q_BIAS       0.003f
+#define KALMAN_R_MEASURE    0.03f
 ```
 
 ### Result
 
 * Roll and pitch are estimated in real time
-* Gyroscope provides short-term response
-* Accelerometer provides long-term correction
-* Output is stable for stationary measurements
+* Complementary and Kalman outputs show correct sign and stable behavior
+* Stationary and dynamic datasets confirm stable roll/pitch tracking
+* No Kalman divergence was observed during validation
+* The estimator output is suitable for live visualization and future control applications
 
 ---
 
@@ -275,36 +348,11 @@ Priority: low
 Interrupt: transfer complete
 ```
 
-### Logging Format
-
-Current CSV output:
-
-```text
-sample,roll_i,pitch_i
-```
-
-where:
-
-```text
-roll_i  = roll  * 100
-pitch_i = pitch * 100
-```
-
-Example:
-
-```text
-50469,22,123
-50470,22,123
-50471,21,124
-```
-
-This keeps UART messages short and reduces bandwidth usage.
-
 ---
 
 ## 🧵 UART DMA Runtime Behavior
 
-The system uses a single transmit buffer for the first DMA implementation.
+The system uses a single transmit buffer for the current DMA implementation.
 
 Before writing new data into the transmit buffer, the firmware checks whether DMA is busy:
 
@@ -336,37 +384,160 @@ When the DMA transfer completes, the `DMA1_Stream6_IRQHandler()` clears the DMA 
 
 ---
 
+## 📤 Live Visualization Output Format
+
+For the live Python visualization, the firmware streams compact CSV data:
+
+```text
+START
+counter,roll,pitch
+0,123,-45
+1,124,-44
+```
+
+where:
+
+```text
+roll  = roll angle  * 100
+pitch = pitch angle * 100
+```
+
+Example:
+
+```text
+0,123,-45
+1,124,-44
+```
+
+This means:
+
+```text
+roll  = 1.23°
+pitch = -0.45°
+```
+
+The compact format keeps UART bandwidth low and is suitable for real-time plotting and 3D visualization.
+
+---
+
 ## 🐧 Linux Logging
 
-Serial data is logged on Linux using:
+Serial data can be logged on Linux using:
 
 ```bash
 stty -F /dev/ttyUSB0 115200 raw -echo
 cat /dev/ttyUSB0 | tee imu_data.csv
 ```
 
+Stop logging with:
+
+```text
+CTRL + C
+```
+
+---
+
+## 🖥️ Python Live 3D Orientation Visualization
+
+A Python visualization tool is provided for real-time orientation display:
+
+```text
+tools/live_3d_orientation.py
+```
+
+The script:
+
+* Opens `/dev/ttyUSB0`
+* Reads UART CSV lines
+* Parses roll and pitch
+* Converts scaled integer values to degrees
+* Displays a live 3D representation of the board
+* Shows roll and pitch trends in real time
+* Can continue parsing even if the STM32 was already running before the script started
+
+Install dependencies:
+
+```bash
+python3 -m pip install pyserial matplotlib numpy
+```
+
+Run:
+
+```bash
+python3 tools/live_3d_orientation.py --port /dev/ttyUSB0 --baud 115200
+```
+
+The 3D representation uses roll and pitch only. Yaw is not shown because the current system does not use a magnetometer.
+
 ---
 
 ## 📈 Data Validation
 
-Logged CSV data was checked offline.
+Logged CSV data was checked offline using Python analysis scripts.
+
+Validation checks included:
+
+* Parsing data after the final `START` marker
+* Checking malformed rows
+* Checking missing counters
+* Checking duplicate counters
+* Converting scaled integer values back to degrees
+* Calculating mean, standard deviation, minimum, and maximum
+* Comparing complementary and Kalman outputs
+* Checking dynamic tracking behavior
+* Checking return-to-zero behavior
+* Checking stationary stability during hold
 
 ### Observations
 
-* Sample counter increases continuously
-* No missing samples observed in the validated log
-* No duplicate samples observed
-* Roll and pitch values remain stable during stationary operation
-* One corrupted startup line may appear at the beginning of logging and is ignored during analysis
+* Sample counters increased continuously in the validated logs
+* No missing samples were observed after the `START` marker
+* No duplicate samples were observed
+* Roll and pitch values remained stable during stationary tests
+* Positive and negative roll directions were correct
+* Positive and negative pitch directions were correct
+* Kalman outputs followed the complementary filter closely
+* No Kalman divergence or unstable behavior was observed
+* Dynamic roll/pitch movement was tracked correctly
 
-### Example Validated Output Range
+### Stationary Validation
+
+Stationary datasets were collected for flat/slight tilt, positive roll, negative roll, and positive pitch positions.
+
+The final stable regions showed low standard deviation and close agreement between complementary and Kalman estimates.
+
+### Dynamic Validation
+
+Dynamic datasets were collected for:
+
+* Positive roll motion
+* Negative roll motion
+* Positive pitch motion
+* Combined roll/pitch motion
+
+The Kalman output followed the complementary output with small average difference during motion. Return-to-zero behavior was stable after movement.
+
+---
+
+## 🧪 Offline Analysis Tools
+
+Python scripts are used for plotting and validating logged CSV data.
+
+Example validation script:
 
 ```text
-roll  ≈ 0.19° to 0.24°
-pitch ≈ 1.20° to 1.25°
+tools/plot_roll_pitch_kalman.py
 ```
 
-This confirms stable orientation output for a stationary setup with slight tilt.
+The script:
+
+* Finds the last `START` marker
+* Parses numeric CSV rows
+* Removes duplicate counters
+* Converts scaled values to degrees
+* Plots roll complementary vs roll Kalman
+* Plots pitch complementary vs pitch Kalman
+* Calculates mean, standard deviation, minimum, and maximum
 
 ---
 
@@ -378,9 +549,13 @@ This confirms stable orientation output for a stationary setup with slight tilt.
 * No double-buffered UART logger yet
 * No ring-buffer logging yet
 * `sprintf()` is still used for formatting
-* No full 3D orientation estimation yet
+* Only roll and pitch are estimated
+* Yaw is not estimated because no magnetometer is used
 * No quaternion-based attitude estimation yet
-* No Kalman filter implemented yet
+* No full 9-axis sensor fusion yet
+* The live 3D visualization is based only on roll and pitch
+* No RTOS is used
+* No closed-loop control application implemented yet
 
 ---
 
@@ -392,11 +567,14 @@ This confirms stable orientation output for a stationary setup with slight tilt.
 * Accelerometer and gyroscope calibration completed
 * Real-time filtering implemented
 * Complementary filter for roll and pitch implemented
+* Reusable 1D Kalman filter module implemented
+* Roll Kalman estimation validated
+* Roll and pitch Kalman estimation validated
 * UART DMA transmission implemented
 * DMA driver infrastructure started
 * Logic analyzer timing validation completed
 * UART logging overhead reduced from milliseconds to microseconds
 * CSV data logging and offline validation completed
-
----
-
+* Python offline validation plots generated
+* Python live roll/pitch plotting implemented
+* Python live 3D orientation visualization implemented
