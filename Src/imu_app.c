@@ -573,9 +573,7 @@ static void imu_process(void)
      * Example:
      *   12.34 deg -> 1234
      */
-    int roll_comp_i   = (int)(IMU_Estimator_GetRoll() * 100);
     int roll_kalman_i = (int)(IMU_Estimator_GetRollKalman() * 100);
-    int pitch_comp_i    = (int)(IMU_Estimator_GetPitch() * 100);
     int pitch_kalman_i   = (int)(IMU_Estimator_GetPitchKalman() * 100);
 
     /*
@@ -583,11 +581,9 @@ static void imu_process(void)
      * counter,roll_comp,roll_kalman,roll_acc,roll_gyro
      */
     sprintf(msg,
-            "%lu,%d,%d,%d,%d\r\n",
+            "%lu,%d,%d\r\n",
             sample_count++,
-            roll_comp_i,
             roll_kalman_i,
-            pitch_comp_i,
             pitch_kalman_i);
 
     USART2_DMA_Send((uint8_t *)msg, strlen(msg));
@@ -660,7 +656,7 @@ int main(void)
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     sprintf(msg,
-            "counter,roll_comp,roll_kalman,pitch_comp,pitch_kalman\r\n");
+            "counter,roll,pitch\r\n");
     USART_SendData(&usart2Handle, (uint8_t *)msg, strlen(msg));
 
     /*
