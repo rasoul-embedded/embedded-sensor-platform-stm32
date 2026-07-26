@@ -1,0 +1,189 @@
+/*
+ * stm32f407xx_clock.h
+ *
+ *  Created on: Jun 28, 2026
+ *      Author: rasoul
+ */
+
+#ifndef INC_STM32F407XX_CLOCK_H_
+#define INC_STM32F407XX_CLOCK_H_
+
+
+#include "stm32f407xx.h"
+
+
+#define MCU_HSI_VALUE_HZ        16000000UL
+#define MCU_HSE_VALUE_HZ        8000000UL
+#define MCU_MAX_SYSCLK_HZ       168000000UL
+#define MCU_MAX_HCLK_HZ         168000000UL
+#define MCU_MAX_PCLK1_HZ        42000000UL
+#define MCU_MAX_PCLK2_HZ        84000000UL
+
+
+
+typedef enum
+{
+	CLOCK_OK = 0,
+	CLOCK_ERROR,
+	CLOCK_TIMEOUT
+}Clock_Status_t;
+
+Clock_Status_t Clock_EnableHSE_Bypass(void);
+Clock_Status_t Clock_EnableHSE_Crystal(void);
+
+Clock_Status_t Clock_SetSystemClock_HSE_8MHz(void);
+Clock_Status_t Clock_SetSystemClock_PLL_HSE_84MHz(void);
+
+uint32_t Clock_GetSysClockFreq(void);
+uint32_t Clock_GetHCLKFreq(void);
+uint32_t Clock_GetPCLK1Freq(void);
+uint32_t Clock_GetPCLK2Freq(void);
+
+void Clock_OutputSYSCLK_MCO2_PC9(void);
+void Clock_OutputSYSCLK_MCO2_PC9_Direct(void);
+
+
+#define RCC_CR_HSION_POS		0U
+#define RCC_CR_HSIRDY_POS		1U
+#define RCC_CR_HSITRIM_POS		3U
+#define RCC_CR_HSICAL_POS		8U
+#define RCC_CR_HSEON_POS		16U
+#define RCC_CR_HSERDY_POS		17U
+#define RCC_CR_HSEBYP_POS		18U
+#define RCC_CR_CSSON_POS		19U
+#define RCC_CR_PLLON_POS		24U
+#define RCC_CR_PLLRDY_POS		25U
+#define RCC_CR_PLLI2SON_POS		26U
+#define RCC_CR_PLLI2SRDY_POS	27U
+
+
+#define RCC_CR_HSION            (1U << RCC_CR_HSION_POS)
+#define RCC_CR_HSIRDY           (1U << RCC_CR_HSIRDY_POS)
+#define RCC_CR_HSEON            (1U << RCC_CR_HSEON_POS)
+#define RCC_CR_HSERDY           (1U << RCC_CR_HSERDY_POS)
+#define RCC_CR_HSEBYP           (1U << RCC_CR_HSEBYP_POS)
+#define RCC_CR_CSSON            (1U << RCC_CR_CSSON_POS)
+#define RCC_CR_PLLON            (1U << RCC_CR_PLLON_POS)
+#define RCC_CR_PLLRDY           (1U << RCC_CR_PLLRDY_POS)
+#define RCC_CR_PLLI2SON         (1U << RCC_CR_PLLI2SON_POS)
+#define RCC_CR_PLLI2SRDY        (1U << RCC_CR_PLLI2SRDY_POS)
+
+#define RCC_CFGR_SW_POS 	   		0U
+#define RCC_CFGR_SWS_POS			2U
+#define RCC_CFGR_HPRE_POS			4U
+#define RCC_CFGR_PPRE1_POS			10U
+#define RCC_CFGR_PPRE2_POS			13U
+#define RCC_CFGR_RTCPRE_POS			16U
+#define RCC_CFGR_MCO1_POS			21U
+#define RCC_CFGR_I2SSCR_POS			23U
+#define RCC_CFGR_MCO1PRE_POS		24U
+#define RCC_CFGR_MCO2PRE_POS		27U
+#define RCC_CFGR_MCO2_POS			30U
+
+#define RCC_CFGR_SW_MASK        (0x3U << RCC_CFGR_SW_POS)
+#define RCC_CFGR_SWS_MASK       (0x3U << RCC_CFGR_SWS_POS)
+#define RCC_CFGR_HPRE_MASK      (0xFU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_PPRE1_MASK     (0x7U << RCC_CFGR_PPRE1_POS)
+#define RCC_CFGR_PPRE2_MASK     (0x7U << RCC_CFGR_PPRE2_POS)
+
+
+#define RCC_CFGR_SW_HSI			(0U << RCC_CFGR_SW_POS)
+#define RCC_CFGR_SW_HSE			(1U << RCC_CFGR_SW_POS)
+#define RCC_CFGR_SW_PLL			(2U << RCC_CFGR_SW_POS)
+
+
+#define RCC_CFGR_SWS_HSI			(0U << RCC_CFGR_SWS_POS)
+#define RCC_CFGR_SWS_HSE			(1U << RCC_CFGR_SWS_POS)
+#define RCC_CFGR_SWS_PLL			(2U << RCC_CFGR_SWS_POS)
+
+#define RCC_CFGR_HPRE_DIV1      	(0x0U << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV2      	(0x8U << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV4      	(0x9U << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV8      	(0xAU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV16     	(0xBU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV64     	(0xCU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV128    	(0xDU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV256    	(0xEU << RCC_CFGR_HPRE_POS)
+#define RCC_CFGR_HPRE_DIV512    	(0xFU << RCC_CFGR_HPRE_POS)
+
+#define RCC_CFGR_PPRE1_DIV1         (0x0U << RCC_CFGR_PPRE1_POS)
+#define RCC_CFGR_PPRE1_DIV2			(0x4U << RCC_CFGR_PPRE1_POS)
+#define RCC_CFGR_PPRE1_DIV4			(0x5U << RCC_CFGR_PPRE1_POS)
+#define RCC_CFGR_PPRE1_DIV8			(0x6U << RCC_CFGR_PPRE1_POS)
+#define RCC_CFGR_PPRE1_DIV16		(0x7U << RCC_CFGR_PPRE1_POS)
+
+#define RCC_CFGR_PPRE2_DIV1     	(0x0U << RCC_CFGR_PPRE2_POS)
+#define RCC_CFGR_PPRE2_DIV2			(0x4U << RCC_CFGR_PPRE2_POS)
+#define RCC_CFGR_PPRE2_DIV4			(0x5U << RCC_CFGR_PPRE2_POS)
+#define RCC_CFGR_PPRE2_DIV8			(0x6U << RCC_CFGR_PPRE2_POS)
+#define RCC_CFGR_PPRE2_DIV16		(0x7U << RCC_CFGR_PPRE2_POS)
+
+#define FLASH_ACR_LATENCY_POS		0U
+#define FLASH_ACR_PRFTEN_POS		8U
+#define FLASH_ACR_ICEN_POS			9U
+#define FLASH_ACR_DCEN_POS			10U
+#define FLASH_ACR_ICRST_POS			11U
+#define FLASH_ACR_DCRST_POS			12U
+
+#define FLASH_ACR_LATENCY_MASK      (0xFU << FLASH_ACR_LATENCY_POS)
+
+#define FLASH_ACR_LATENCY_0WS       (0x0U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_1WS       (0x1U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_2WS       (0x2U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_3WS       (0x3U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_4WS       (0x4U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_5WS       (0x5U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_6WS       (0x6U << FLASH_ACR_LATENCY_POS)
+#define FLASH_ACR_LATENCY_7WS       (0x7U << FLASH_ACR_LATENCY_POS)
+
+#define RCC_CFGR_MCO2PRE_MASK        (0x7U << RCC_CFGR_MCO2PRE_POS)
+#define RCC_CFGR_MCO2_MASK           (0x3U << RCC_CFGR_MCO2_POS)
+
+#define RCC_CFGR_MCO2_SYSCLK         (0x0U << RCC_CFGR_MCO2_POS)
+#define RCC_CFGR_MCO2_PLLI2S         (0x1U << RCC_CFGR_MCO2_POS)
+#define RCC_CFGR_MCO2_HSE            (0x2U << RCC_CFGR_MCO2_POS)
+#define RCC_CFGR_MCO2_PLL            (0x3U << RCC_CFGR_MCO2_POS)
+
+#define RCC_CFGR_MCO2PRE_DIV1        (0x0U << RCC_CFGR_MCO2PRE_POS)
+#define RCC_CFGR_MCO2PRE_DIV2        (0x4U << RCC_CFGR_MCO2PRE_POS)
+#define RCC_CFGR_MCO2PRE_DIV3        (0x5U << RCC_CFGR_MCO2PRE_POS)
+#define RCC_CFGR_MCO2PRE_DIV4        (0x6U << RCC_CFGR_MCO2PRE_POS)
+#define RCC_CFGR_MCO2PRE_DIV5        (0x7U << RCC_CFGR_MCO2PRE_POS)
+
+
+
+/*
+ * RCC_PLLCFGR bit positions
+ */
+#define RCC_PLLCFGR_PLLM_POS        0U
+#define RCC_PLLCFGR_PLLN_POS        6U
+#define RCC_PLLCFGR_PLLP_POS        16U
+#define RCC_PLLCFGR_PLLSRC_POS      22U
+#define RCC_PLLCFGR_PLLQ_POS        24U
+
+/*
+ * RCC_PLLCFGR field masks
+ */
+#define RCC_PLLCFGR_PLLM_MASK       (0x3FU  << RCC_PLLCFGR_PLLM_POS)
+#define RCC_PLLCFGR_PLLN_MASK       (0x1FFU << RCC_PLLCFGR_PLLN_POS)
+#define RCC_PLLCFGR_PLLP_MASK       (0x3U   << RCC_PLLCFGR_PLLP_POS)
+#define RCC_PLLCFGR_PLLSRC_MASK     (0x1U   << RCC_PLLCFGR_PLLSRC_POS)
+#define RCC_PLLCFGR_PLLQ_MASK       (0xFU   << RCC_PLLCFGR_PLLQ_POS)
+
+/*
+ * PLL source
+ */
+#define RCC_PLLCFGR_PLLSRC_HSI      (0x0U << RCC_PLLCFGR_PLLSRC_POS)
+#define RCC_PLLCFGR_PLLSRC_HSE      (0x1U << RCC_PLLCFGR_PLLSRC_POS)
+
+/*
+ * PLLP encoding
+ */
+#define RCC_PLLCFGR_PLLP_DIV2       (0x0U << RCC_PLLCFGR_PLLP_POS)
+#define RCC_PLLCFGR_PLLP_DIV4       (0x1U << RCC_PLLCFGR_PLLP_POS)
+#define RCC_PLLCFGR_PLLP_DIV6       (0x2U << RCC_PLLCFGR_PLLP_POS)
+#define RCC_PLLCFGR_PLLP_DIV8       (0x3U << RCC_PLLCFGR_PLLP_POS)
+
+
+
+#endif /* INC_STM32F407XX_CLOCK_H_ */
