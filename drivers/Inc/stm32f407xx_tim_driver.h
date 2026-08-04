@@ -13,27 +13,56 @@
 
 
 typedef struct{
-    uint32_t Prescaler;
-    uint32_t AutoReload;
-} TIM_Config_t;
+    uint16_t Prescaler;
+    uint16_t AutoReload;
+    uint8_t	UpdateInterruptEnable;
+} TIM_Basic_Config_t;
 
 typedef struct
 {
-    TIM_RegDef_t *pTIMx;
-    TIM_Config_t TIM_Config;
-} TIM_Handle_t;
+	TIM_Basic_RegDef_t *pTIMx;
+	TIM_Basic_Config_t TIM_Config;
+} TIM_Basic_Handle_t;
+
+typedef struct{
+    uint16_t Prescaler;
+    uint32_t AutoReload;
+    uint8_t	UpdateInterruptEnable;
+} TIM_GeneralPurpose_Config_t;
 
 
 
-void TIM_PeriClockControl(TIM_RegDef_t *pTIMx, uint8_t EnOrDi);
-void TIM_Init(TIM_Handle_t *pTIMHandle);
-void TIM_DeInit(TIM_RegDef_t *pTIMx);
-void TIM_PeripheralControl(TIM_RegDef_t *pTIMx, uint8_t EnOrDi);
+typedef struct
+{
+	TIM_GeneralPurpose_RegDef_t *pTIMx;
+	TIM_GeneralPurpose_Config_t TIM_Config;
+} TIM_GeneralPurpose_Handle_t;
+
+
+void TIM_Basic_PeriClockControl(TIM_Basic_RegDef_t *pTIMx, uint8_t EnOrDi);
+void TIM_Basic_Init(TIM_Basic_Handle_t *pTIMHandle);
+void TIM_Basic_DeInit(TIM_Basic_RegDef_t *pTIMx);
+void TIM_Basic_PeripheralControl(TIM_Basic_RegDef_t *pTIMx, uint8_t EnOrDi);
+void TIM_Basic_EnableUpdateInterrupt(TIM_Basic_RegDef_t *pTIMx, uint8_t EnOrDi);
+
+
+
+void TIM_GeneralPurpose_PeriClockControl(TIM_GeneralPurpose_RegDef_t *pTIMx, uint8_t EnOrDi);
+void TIM_GeneralPurpose_Init(TIM_GeneralPurpose_Handle_t *pTIMHandle);
+void TIM_GeneralPurpose_DeInit(TIM_GeneralPurpose_RegDef_t *pTIMx);
+void TIM_GeneralPurpose_PeripheralControl(TIM_GeneralPurpose_RegDef_t *pTIMx, uint8_t EnOrDi);
+void TIM_GeneralPurpose_EnableUpdateInterrupt(TIM_GeneralPurpose_RegDef_t *pTIMx, uint8_t EnOrDi);
+
+
 void TIM_IRQInterruptConfig(uint8_t IRQNumber, uint8_t EnOrDi);
 void TIM_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority);
-void TIM_EnableUpdateInterrupt(TIM_RegDef_t *pTIMx, uint8_t IRQNumber);
 
 
+void TIM_Basic_IRQHandling(TIM_Basic_Handle_t *pTIMHandle);
+void TIM_Basic_ApplicationEventCallback(TIM_Basic_Handle_t *TIMHandle);
+
+void TIM_GeneralPurpose_IRQHandling(TIM_GeneralPurpose_Handle_t *pTIMHandle);
+void TIM_GeneralPurpose_ApplicationEventCallback(TIM_GeneralPurpose_Handle_t *TIMHandle);
 
 
 #define TIM_CR1_CEN_POS             	0

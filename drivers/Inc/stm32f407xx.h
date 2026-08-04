@@ -52,7 +52,7 @@
 /****************************************
  *        Base Address of memories      *
  ****************************************/
-#define FLASH_BASE_ADDR         0x08000000UL
+#define FLASH_MEM_BASE_ADDR         0x08000000UL
 #define SRAM1_BASE_ADDR         0x20000000UL
 #define SRAM2_BASE_ADDR         0x2001C000UL
 #define SRAM_BASE_ADDR          SRAM1_BASE_ADDR
@@ -86,6 +86,7 @@
 #define DMA1_BASE_ADDR			(AHB1PERIPH_BASE_ADDR + 0x6000UL)
 #define DMA2_BASE_ADDR			(AHB1PERIPH_BASE_ADDR + 0x6400UL)
 
+#define	FLASH_REG_BASE_ADDR 		(AHB1PERIPH_BASE_ADDR + 0x3C00UL)
 
 /* DMA1 stream base addresses */
 #define DMA1_STREAM0_BASE_ADDR   (DMA1_BASE_ADDR + 0x010UL)
@@ -107,6 +108,7 @@
 #define DMA2_STREAM6_BASE_ADDR   (DMA2_BASE_ADDR + 0x0A0UL)
 #define DMA2_STREAM7_BASE_ADDR   (DMA2_BASE_ADDR + 0x0B8UL)
 
+
 /****************************************
  *             APB1 peripherals         *
  ****************************************/
@@ -122,10 +124,22 @@
 #define I2C2_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x5800UL)
 #define I2C3_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x5C00UL)
 
+#define TIM1_BASE_ADDR			(APB2PERIPH_BASE_ADDR + 0x0000UL)
 #define TIM2_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0000UL)
 #define TIM3_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0400UL)
 #define TIM4_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0800UL)
 #define TIM5_BASE_ADDR          (APB1PERIPH_BASE_ADDR + 0x0C00UL)
+#define TIM6_BASE_ADDR			(APB1PERIPH_BASE_ADDR + 0x1000UL)
+#define TIM7_BASE_ADDR			(APB1PERIPH_BASE_ADDR + 0x1400UL)
+#define TIM8_BASE_ADDR			(APB2PERIPH_BASE_ADDR + 0x0400UL)
+#define TIM9_BASE_ADDR			(APB2PERIPH_BASE_ADDR + 0x4000UL)
+#define TIM10_BASE_ADDR			(APB2PERIPH_BASE_ADDR + 0x4400UL)
+#define TIM11_BASE_ADDR			(APB2PERIPH_BASE_ADDR + 0x4800UL)
+#define TIM12_BASE_ADDR			(APB1PERIPH_BASE_ADDR + 0x1800UL)
+#define TIM13_BASE_ADDR			(APB1PERIPH_BASE_ADDR + 0x1C00UL)
+#define TIM14_BASE_ADDR			(APB1PERIPH_BASE_ADDR + 0x2000UL)
+
+
 
 
 
@@ -249,6 +263,23 @@ typedef struct
 } SYSCFG_RegDef_t;
 
 
+
+
+typedef struct
+{
+    __vo uint32_t CR1;          /* 0x00 */
+    __vo uint32_t CR2;          /* 0x04 */
+    uint32_t RESERVED0;         /* 0x08 */
+    __vo uint32_t DIER;         /* 0x0C */
+    __vo uint32_t SR;           /* 0x10 */
+    __vo uint32_t EGR;          /* 0x14 */
+    uint32_t RESERVED1[3];      /* 0x18, 0x1C, 0x20 */
+    __vo uint32_t CNT;          /* 0x24 */
+    __vo uint32_t PSC;          /* 0x28 */
+    __vo uint32_t ARR;          /* 0x2C */
+} TIM_Basic_RegDef_t;
+
+
 typedef struct
 {
     __vo uint32_t CR1;
@@ -272,8 +303,7 @@ typedef struct
     __vo uint32_t DCR;
     __vo uint32_t DMAR;
     __vo uint32_t OR;
-} TIM_RegDef_t;
-
+} TIM_GeneralPurpose_RegDef_t;
 
 
 typedef struct
@@ -293,6 +323,16 @@ typedef struct
     __vo uint32_t M1AR;
     __vo uint32_t FCR;
 } DMA_Stream_RegDef_t;
+
+typedef struct
+{
+	__vo uint32_t ACR;
+	__vo uint32_t KEYR;
+	__vo uint32_t OPT_KEYR;
+	__vo uint32_t SR;
+	__vo uint32_t CR;
+	__vo uint32_t OPTCR;
+}FLASH_RegDef_t;
 
 
 /***********************************************************
@@ -327,10 +367,14 @@ typedef struct
 #define EXTI                    ((EXTI_RegDef_t*)EXTI_BASE_ADDR)
 #define SYSCFG                  ((SYSCFG_RegDef_t*)SYSCFG_BASE_ADDR)
 
-#define TIM2                    ((TIM_RegDef_t*)TIM2_BASE_ADDR)
-#define TIM3                    ((TIM_RegDef_t*)TIM3_BASE_ADDR)
-#define TIM4                    ((TIM_RegDef_t*)TIM4_BASE_ADDR)
-#define TIM5                    ((TIM_RegDef_t*)TIM5_BASE_ADDR)
+#define TIM2                    ((TIM_GeneralPurpose_RegDef_t*)TIM2_BASE_ADDR)
+#define TIM3                    ((TIM_GeneralPurpose_RegDef_t*)TIM3_BASE_ADDR)
+#define TIM4                    ((TIM_GeneralPurpose_RegDef_t*)TIM4_BASE_ADDR)
+#define TIM5                    ((TIM_GeneralPurpose_RegDef_t*)TIM5_BASE_ADDR)
+
+#define TIM6					((TIM_Basic_RegDef_t*)TIM6_BASE_ADDR)
+#define TIM7					((TIM_Basic_RegDef_t*)TIM7_BASE_ADDR)
+
 
 #define DMA1 					((DMA_RegDef_t*)DMA1_BASE_ADDR)
 #define DMA2 					((DMA_RegDef_t*)DMA2_BASE_ADDR)
@@ -352,6 +396,8 @@ typedef struct
 #define DMA2_Stream5 ((DMA_Stream_RegDef_t*)DMA2_STREAM5_BASE_ADDR)
 #define DMA2_Stream6 ((DMA_Stream_RegDef_t*)DMA2_STREAM6_BASE_ADDR)
 #define DMA2_Stream7 ((DMA_Stream_RegDef_t*)DMA2_STREAM7_BASE_ADDR)
+
+#define FLASH		 ((FLASH_RegDef_t*)FLASH_REG_BASE_ADDR)
 
 /***********************************************************
  *                 Clock enable macros                     *
@@ -389,10 +435,20 @@ typedef struct
 #define SYSCFG_PCLK_EN()        (RCC->APB2ENR |=  (1U << 14))
 
 /* TIM */
+#define TIM1_PCLK_EN()          (RCC->APB2ENR |=  (1U << 0))
 #define TIM2_PCLK_EN()          (RCC->APB1ENR |=  (1U << 0))
 #define TIM3_PCLK_EN()          (RCC->APB1ENR |=  (1U << 1))
 #define TIM4_PCLK_EN()          (RCC->APB1ENR |=  (1U << 2))
 #define TIM5_PCLK_EN()          (RCC->APB1ENR |=  (1U << 3))
+#define TIM6_PCLK_EN()          (RCC->APB1ENR |=  (1U << 4))
+#define TIM7_PCLK_EN()          (RCC->APB1ENR |=  (1U << 5))
+#define TIM8_PCLK_EN()          (RCC->APB2ENR |=  (1U << 1))
+#define TIM9_PCLK_EN()          (RCC->APB2ENR |=  (1U << 16))
+#define TIM10_PCLK_EN()         (RCC->APB2ENR |=  (1U << 17))
+#define TIM11_PCLK_EN()         (RCC->APB2ENR |=  (1U << 18))
+#define TIM12_PCLK_EN()         (RCC->APB1ENR |=  (1U << 6))
+#define TIM13_PCLK_EN()         (RCC->APB1ENR |=  (1U << 7))
+#define TIM14_PCLK_EN()         (RCC->APB1ENR |=  (1U << 8))
 
 /* DMA */
 #define DMA1_PCLK_EN()          (RCC->AHB1ENR |=  (1U << 21))
@@ -436,10 +492,20 @@ typedef struct
 #define SYSCFG_PCLK_DI()        (RCC->APB2ENR &= ~(1U << 14))
 
 /* TIM */
+#define TIM1_PCLK_DI()          (RCC->APB2ENR &= ~(1U << 0))
 #define TIM2_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 0))
 #define TIM3_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 1))
 #define TIM4_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 2))
 #define TIM5_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 3))
+#define TIM6_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 4))
+#define TIM7_PCLK_DI()          (RCC->APB1ENR &= ~(1U << 5))
+#define TIM8_PCLK_DI()          (RCC->APB2ENR &= ~(1U << 1))
+#define TIM9_PCLK_DI()          (RCC->APB2ENR &= ~(1U << 16))
+#define TIM10_PCLK_DI()         (RCC->APB2ENR &= ~(1U << 17))
+#define TIM11_PCLK_DI()         (RCC->APB2ENR &= ~(1U << 18))
+#define TIM12_PCLK_DI()         (RCC->APB1ENR &= ~(1U << 6))
+#define TIM13_PCLK_DI()         (RCC->APB1ENR &= ~(1U << 7))
+#define TIM14_PCLK_DI()        (RCC->APB1ENR &= ~(1U << 8))
 
 /* DMA */
 #define DMA1_PCLK_DI()          (RCC->AHB1ENR &= ~(1U << 21))
@@ -485,6 +551,9 @@ typedef struct
 #define TIM3_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 1); RCC->APB1RSTR &= ~(1U << 1); } while (0)
 #define TIM4_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 2); RCC->APB1RSTR &= ~(1U << 2); } while (0)
 #define TIM5_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 3); RCC->APB1RSTR &= ~(1U << 3); } while (0)
+#define TIM6_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 4); RCC->APB1RSTR &= ~(1U << 4); } while (0)
+#define TIM7_REG_RESET()        do { RCC->APB1RSTR |=  (1U << 5); RCC->APB1RSTR &= ~(1U << 5); } while (0)
+
 
 /* DMA */
 #define DMA1_REG_RESET()        do { RCC->AHB1RSTR |=  (1U << 21); RCC->AHB1RSTR &= ~(1U << 21); } while (0)
@@ -548,8 +617,11 @@ typedef struct
 
 
 /* TIM */
-#define IRQ_NO_TIM2             28U
-
+#define IRQ_NO_TIM2       28U
+#define IRQ_NO_TIM3    	  29U
+#define IRQ_NO_TIM5    	  50U
+#define IRQ_NO_TIM6_DAC   54U
+#define IRQ_NO_TIM7       55U
 /* DMA1 */
 #define IRQ_NO_DMA1_STREAM0		11U
 #define IRQ_NO_DMA1_STREAM1		12U
